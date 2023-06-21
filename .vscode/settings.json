@@ -77,6 +77,19 @@
     "streambuf": "cpp",
     "thread": "cpp",
     "cfenv": "cpp",
-    "cinttypes": "cpp"
+    "cinttypes": "cpp",
+    "cstring": "cpp",
+    "iomanip": "cpp",
+    "time.h": "c",
+    "opt.h": "c",
+    "cmdutils.h": "c",
+    "opt_common.h": "c",
+    "stdint.h": "c",
+    "avcodec.h": "c",
+    "swresample.h": "c",
+    "inttypes.h": "c",
+    "avfft.h": "c",
+    "avfilter.h": "c",
+    "postprocess.h": "c"
   }
 }

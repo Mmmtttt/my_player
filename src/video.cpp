@@ -64,43 +64,7 @@ Video::~Video()
     avformat_network_deinit();
 }
 
-bool Video::open(const std::string& filename)
-{
-    AVFormatContext* formatCtx = nullptr;
-    if (avformat_open_input(&formatCtx, filename.c_str(), nullptr, nullptr) != 0) {
-        std::cerr << "Failed to open video file" << std::endl;
-        return false;
-    }
 
-    if (avformat_find_stream_info(formatCtx, nullptr) < 0) {
-        std::cerr << "Failed to find stream information" << std::endl;
-        avformat_close_input(&formatCtx);
-        return false;
-    }
-
-    av_dump_format(formatCtx, 0, filename.c_str(), 0);
-
-    int videoStreamIndex = -1;
-    for (unsigned int i = 0; i < formatCtx->nb_streams; i++) {
-        if (formatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-            videoStreamIndex = i;
-            break;
-        }
-    }
-
-    if (videoStreamIndex == -1) {
-        std::cerr << "Failed to find a video stream" << std::endl;
-        avformat_close_input(&formatCtx);
-        return false;
-    }
-
-    width = formatCtx->streams[videoStreamIndex]->codecpar->width;
-    height = formatCtx->streams[videoStreamIndex]->codecpar->height;
-
-    avformat_close_input(&formatCtx);
-
-    return true;
-}
 
 
 void Video::read_One_frame_packet(){

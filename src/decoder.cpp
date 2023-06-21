@@ -73,16 +73,16 @@ Decoder::Decoder(AVFormatContext* p_fmt_ctx,int v_idx,int frame_rate)
     //     如果解码后得到图像的能被SDL支持，则不必进行图像转换
     //     这里为了编码简便，统一转换为SDL支持的格式AV_PIX_FMT_YUV420P==>SDL_PIXELFORMAT_IYUV
     sws_ctx = sws_getContext(p_codec_ctx->width,    // src width
-                             p_codec_ctx->height,   // src height
-                             p_codec_ctx->pix_fmt,  // src format
-                             p_codec_ctx->width,    // dst width
-                             p_codec_ctx->height,   // dst height
-                             AV_PIX_FMT_YUV420P,    // dst format
-                             SWS_BICUBIC,           // flags
-                             NULL,                  // src filter
-                             NULL,                  // dst filter
-                             NULL                   // param
-                             );
+                p_codec_ctx->height,   // src height
+                p_codec_ctx->pix_fmt,  // src format
+                p_codec_ctx->width,    // dst width
+                p_codec_ctx->height,   // dst height
+                AV_PIX_FMT_YUV420P,    // dst format
+                SWS_BICUBIC,           // flags
+                NULL,                  // src filter
+                NULL,                  // dst filter
+                NULL                   // param
+                );
     if (sws_ctx == NULL)
     {
         avcodec_free_context(&p_codec_ctx);

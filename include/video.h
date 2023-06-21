@@ -11,7 +11,7 @@ public:
     Video(const std::string& filename);
     ~Video();
 
-    bool open(const std::string& filename);
+
     void play();
     void show_IFO(){av_dump_format(p_fmt_ctx, 0, filename.c_str(), 0);};
     

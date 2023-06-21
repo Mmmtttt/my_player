@@ -5,8 +5,8 @@
       "includePath": [
         "${workspaceFolder}/**",
         "include",
-        "J:/transform/ffmpeg-n6.0-latest-win64-lgpl-shared-6.0/include",
-        "J:/transform/SDL2-2.0.16/include"
+        "J:/transform/ffmpeg/include",
+        "J:/transform/SDL2/include"
       ],
       "compilerPath": "C:/mingw64/bin/gcc.exe",
       "cStandard": "${default}",

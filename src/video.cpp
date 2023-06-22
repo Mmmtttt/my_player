@@ -2,6 +2,9 @@
 #include <iostream>
 #include <libavformat/avformat.h>
 
+bool s_playing_exit =false;
+bool s_playing_pause =false;
+
 Video::Video(const std::string& filename):filename(filename)
 {
     avformat_network_init();

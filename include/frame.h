@@ -16,8 +16,8 @@ extern "C"{
 #include <iostream>
 #include <memory>
 
-static bool s_playing_exit =false;
-static bool s_playing_pause =false;
+extern bool s_playing_exit ;
+extern bool s_playing_pause ;
 
 
 class Frame {

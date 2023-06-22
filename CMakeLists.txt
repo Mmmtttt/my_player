@@ -18,11 +18,17 @@ set(SOURCES
 )
 
 # 设置头文件目录
-include_directories(include J:/transform/ffmpeg/include J:/transform/SDL2/include)
+include_directories(include 
+C:/Users/86156/Desktop/player/libs_win/develop/ffmpeg-20181212/include 
+C:/Users/86156/Desktop/player/libs_win/develop/SDL2-2.0.9/include
+)
 
 # 添加 FFmpeg 库目录
 #link_directories(libs)
-link_directories (J:/transform/ffmpeg/lib J:/transform/SDL2/lib/x64)
+link_directories (
+    C:/Users/86156/Desktop/player/libs_win/develop/ffmpeg-20181212/lib 
+    C:/Users/86156/Desktop/player/libs_win/develop/SDL2-2.0.9/lib/x64
+    )
 
 
 # 添加可执行文件生成

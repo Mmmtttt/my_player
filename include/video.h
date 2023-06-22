@@ -24,6 +24,7 @@ public:
     int height;
     int i;
     int v_idx;
+    int a_idx;
     int frame_rate;
 
 
@@ -31,7 +32,8 @@ public:
 private:
     std::string filename;
 
-    std::unique_ptr<Decoder> decoder;
+    std::unique_ptr<Decoder> v_decoder;
+    std::unique_ptr<Decoder> a_decoder;
 
     SDL_Event sdl_event;
 

@@ -10,7 +10,7 @@
 
 class Decoder {
 public:
-    Decoder(AVFormatContext* p_fmt_ctx,int v_idx,int frame_rate);
+    Decoder(AVFormatContext* p_fmt_ctx,int idx,int frame_rate);
     ~Decoder();
 
     int present_One_frame(); 

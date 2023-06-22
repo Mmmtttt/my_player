@@ -38,23 +38,40 @@ Video::Video(const std::string& filename):filename(filename)
                          p_fmt_ctx->streams[i]->avg_frame_rate.den;
             break;
         }
+        else if(p_fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
+        {
+            a_idx = i;
+            printf("Find a audio stream, index %d\n", a_idx);
+            break;
+        }
     }
     if (v_idx == -1)
     {
         avformat_close_input(&p_fmt_ctx);
         throw std::runtime_error("Cann't find a video stream\n");
+    }if (a_idx == -1)
+    {
+        avformat_close_input(&p_fmt_ctx);
+        throw std::runtime_error("Cann't find a audio stream\n");
     }
 
 
 
 
-    try{decoder=std::make_unique<Decoder>(p_fmt_ctx, v_idx ,frame_rate);}
+    try{v_decoder=std::make_unique<Decoder>(p_fmt_ctx, v_idx ,frame_rate);}
     catch(const std::exception& e)
     {
         std::cout<<e.what()<<std::endl;
         avformat_close_input(&p_fmt_ctx);
-        throw std::runtime_error("create decoder failed\n");
+        throw std::runtime_error("create v_decoder failed\n");
     } 
+    try{a_decoder=std::make_unique<Decoder>(p_fmt_ctx, a_idx,frame_rate);}
+    catch(const std::exception& e)
+    {
+        std::cout<<e.what()<<std::endl;
+        avformat_close_input(&p_fmt_ctx);
+        throw std::runtime_error("create a_decoder failed\n");
+    }
     
     
     
@@ -77,9 +94,9 @@ void Video::read_One_frame_packet(){
     //     对于视频来说，一个packet只包含一个frame
     //     对于音频来说，若是帧长固定的格式则一个packet可包含整数个frame，
     //                   若是帧长可变的格式则一个packet只包含一个frame
-    while (av_read_frame(p_fmt_ctx, decoder->p_packet) == 0)
+    while (av_read_frame(p_fmt_ctx, v_decoder->p_packet) == 0)
     {
-        if (decoder->p_packet->stream_index == v_idx)  // 取到一帧视频帧，则退出
+        if (v_decoder->p_packet->stream_index == v_idx)  // 取到一帧视频帧，则退出
         {
             break;
         }
@@ -94,7 +111,7 @@ void Video::play(){
         {
             read_One_frame_packet();
             int ret;
-            try{ret=decoder->present_One_frame();}
+            try{ret=v_decoder->present_One_frame();}
             catch(const std::exception&e){
                 std::cout<<e.what()<<std::endl;
                 return;

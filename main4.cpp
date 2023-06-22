@@ -16,7 +16,7 @@
  *   3. http://dranger.com/ffmpeg/ffmpegtutorial_all.html#tutorial02.html
  *   4. http://dranger.com/ffmpeg/ffmpegtutorial_all.html#tutorial03.html
  *******************************************************************************/
-
+extern "C" {
 #include <stdio.h>
 #include <stdbool.h>
 #include <assert.h>
@@ -27,7 +27,8 @@
 #include <libswscale/swscale.h>
 #include <libswresample/swresample.h>
 #include <SDL.h>
-
+}
+#include <list>
 #define SDL_AUDIO_BUFFER_SIZE 1024
 #define MAX_AUDIO_FRAME_SIZE 192000
 
@@ -77,7 +78,7 @@ int packet_queue_push(packet_queue_t *q, AVPacket *pkt)
         printf("[pkt] is not refrence counted\n");
         return -1;
     }
-    pkt_list = av_malloc(sizeof(AVPacketList));
+    pkt_list = (AVPacketList *)av_malloc(sizeof(AVPacketList));
     if (!pkt_list)
     {
         return -1;
@@ -213,14 +214,14 @@ int audio_decode_frame(AVCodecContext *p_codec_ctx, AVPacket *p_packet, uint8_t 
                                                      s_audio_param_tgt.fmt, 
                                                      s_audio_param_tgt.freq,
                                                      p_frame->channel_layout,           
-                                                     p_frame->format, 
+                                                     (AVSampleFormat)p_frame->format, 
                                                      p_frame->sample_rate,
                                                      0,
                                                      NULL);
                 if (s_audio_swr_ctx == NULL || swr_init(s_audio_swr_ctx) < 0)
                 {
                     printf("Cannot create sample rate converter for conversion of %d Hz %s %d channels to %d Hz %s %d channels!\n",
-                            p_frame->sample_rate, av_get_sample_fmt_name(p_frame->format), p_frame->channels,
+                            p_frame->sample_rate, av_get_sample_fmt_name((AVSampleFormat)p_frame->format), p_frame->channels,
                             s_audio_param_tgt.freq, av_get_sample_fmt_name(s_audio_param_tgt.fmt), s_audio_param_tgt.channels);
                     swr_free(&s_audio_swr_ctx);
                     return -1;
@@ -230,7 +231,7 @@ int audio_decode_frame(AVCodecContext *p_codec_ctx, AVPacket *p_packet, uint8_t 
                 s_audio_param_src.channel_layout = p_frame->channel_layout;
                 s_audio_param_src.channels       = p_frame->channels;
                 s_audio_param_src.freq           = p_frame->sample_rate;
-                s_audio_param_src.fmt            = p_frame->format;
+                s_audio_param_src.fmt            = (AVSampleFormat)p_frame->format;
             }
 
             if (s_audio_swr_ctx != NULL)        // 重采样
@@ -253,7 +254,7 @@ int audio_decode_frame(AVCodecContext *p_codec_ctx, AVPacket *p_packet, uint8_t 
                 
                 if (s_resample_buf == NULL)
                 {
-                    av_fast_malloc(&s_resample_buf, &s_resample_buf_len, out_size);
+                    av_fast_malloc(&s_resample_buf, (unsigned int *)&s_resample_buf_len, out_size);
                 }
                 if (s_resample_buf == NULL)
                 {

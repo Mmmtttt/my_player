@@ -13,12 +13,27 @@ extern "C" {
 #include <list>
 #include <mutex>
 #include <condition_variable>
+#include <iostream>
+#include <memory>
 #define SDL_AUDIO_BUFFER_SIZE 1024
 #define MAX_AUDIO_FRAME_SIZE 192000
 
+class myAVPacket{
+    public:
+        myAVPacket(){num++;}
+        myAVPacket(AVPacket pkt):mypkt(pkt),size(pkt.size){}
+        ~myAVPacket(){
+            std::cout<<"destory num "<<num<<std::endl;
+            av_packet_unref(&mypkt);
+        }
+        AVPacket mypkt;
+        int size;
+        static int num;
+};
+
 typedef struct packet_queue_t
 {
-    std::list<AVPacket> pkts;
+    std::list<std::unique_ptr<myAVPacket>> pkts_ptr;
     int size=0;         // 队列中AVPacket总的大小(字节数)
         std::mutex Mutex;
         std::condition_variable cond;
@@ -51,13 +66,14 @@ void packet_queue_init(packet_queue_t *q)
 }
 
 // 写队列尾部。pkt是一包还未解码的音频数据
-int packet_queue_push(packet_queue_t *q, AVPacket *pkt)
+int packet_queue_push(packet_queue_t *q, std::unique_ptr<myAVPacket> pkt_ptr)
 {
     //SDL_LockMutex(q->mutex);
-std::unique_lock<std::mutex> lock(q->Mutex);
-
-    q->pkts.push_back(*pkt);
-    q->size += pkt->size;
+    std::unique_lock<std::mutex> lock(q->Mutex);
+        std::cout<<"de 1";
+    q->size += pkt_ptr->size;
+    q->pkts_ptr.push_back(std::move(pkt_ptr));
+    std::cout<<"de 2";
     // 发个条件变量的信号：重启等待q->cond条件变量的一个线程
     // SDL_CondSignal(q->cond);
 
@@ -68,7 +84,7 @@ std::unique_lock<std::mutex> lock(q->Mutex);
 }
 
 // 读队列头部。
-int packet_queue_pop(packet_queue_t *q, AVPacket *pkt, int block)
+int packet_queue_pop(packet_queue_t *q, std::unique_ptr<myAVPacket>& pkt_ptr, int block)
 {
     int ret;
 
@@ -76,11 +92,14 @@ int packet_queue_pop(packet_queue_t *q, AVPacket *pkt, int block)
 std::unique_lock<std::mutex> lock(q->Mutex);
     while (1)
     {
-        if (q->pkts.size())             // 队列非空，取一个出来
-        {
-            *pkt=q->pkts.front();
-            q->pkts.pop_front();
-            ret = 1;
+        if (q->pkts_ptr.size())             // 队列非空，取一个出来
+        {//std::cout<<q->pkts.size()<<std::endl;
+            pkt_ptr=std::move(q->pkts_ptr.front());//std::cout<<q->pkts.front().mypkt.buf<<std::endl;
+        //std::cout<<"de 1";
+            q->pkts_ptr.pop_front();//std::cout<<q->pkts.size()<<std::endl;
+        //std::cout<<"de 1";
+
+            ret = 1;//std::cout<<pkt.size<<std::endl;
             break;
         }
         else if (s_input_finished)  // 队列已空，文件已处理完
@@ -104,7 +123,7 @@ std::unique_lock<std::mutex> lock(q->Mutex);
     return ret;
 }
 
-int audio_decode_frame(AVCodecContext *p_codec_ctx, AVPacket *p_packet, uint8_t *audio_buf, int buf_size)
+int audio_decode_frame(AVCodecContext *p_codec_ctx, std::unique_ptr<myAVPacket> p_packet_ptr, uint8_t *audio_buf, int buf_size)
 {
     AVFrame *p_frame = av_frame_alloc();
     
@@ -257,11 +276,13 @@ int audio_decode_frame(AVCodecContext *p_codec_ctx, AVPacket *p_packet, uint8_t 
         // 2 向解码器喂数据，每次喂一个packet
         if (need_new)
         {
-            ret = avcodec_send_packet(p_codec_ctx, p_packet);
+            //myAVPacket temp=p_packet;
+            ret = avcodec_send_packet(p_codec_ctx, &(p_packet_ptr->mypkt));
             if (ret != 0)
             {
                 printf("avcodec_send_packet() failed %d\n", ret);
-                av_packet_unref(p_packet);
+                //av_packet_unref(p_packet);
+
                 res = -1;
                 goto exit;
             }
@@ -290,7 +311,7 @@ void sdl_audio_callback(void *userdata, uint8_t *stream, int len)
     static uint32_t s_audio_len = 0;    // 新取得的音频数据大小
     static uint32_t s_tx_idx = 0;       // 已发送给设备的数据量
 
-    AVPacket *p_packet;
+    std::unique_ptr<myAVPacket> p_packet_ptr;
 
     int frm_size = 0;
     int ret_size = 0;
@@ -305,33 +326,33 @@ void sdl_audio_callback(void *userdata, uint8_t *stream, int len)
 
         if (s_tx_idx >= s_audio_len)
         {   // audio_buf缓冲区中数据已全部取出，则从队列中获取更多数据
-            p_packet = (AVPacket *)av_malloc(sizeof(AVPacket));
             
+            //std::cout<<p_packet.size<<std::endl;
             // 1. 从队列中读出一包音频数据
-            if (packet_queue_pop(&s_audio_pkt_queue, p_packet, 1) <= 0)
+            if (packet_queue_pop(&s_audio_pkt_queue, p_packet_ptr, 1) <= 0)
             {
                 if (s_input_finished)
                 {
-                    av_packet_unref(p_packet);
-                    p_packet = NULL;    // flush decoder
+                    // av_packet_unref(p_packet);
+                    // p_packet = NULL;    // flush decoder
                     printf("Flushing decoder...\n");
                 }
                 else
                 {
                     printf("1\n");
-                    av_packet_unref(p_packet);
+                    // av_packet_unref(p_packet);
                     return;
                 }
             }
 
             // 2. 解码音频包
-            get_size = audio_decode_frame(p_codec_ctx, p_packet, s_audio_buf, sizeof(s_audio_buf));
+            get_size = audio_decode_frame(p_codec_ctx, std::move(p_packet_ptr), s_audio_buf, sizeof(s_audio_buf));
             if (get_size < 0)
             {
                 // 出错输出一段静音
                 s_audio_len = 1024; // arbitrary?
                 memset(s_audio_buf, 0, s_audio_len);
-                av_packet_unref(p_packet);
+                //av_packet_unref(p_packet);
                 printf("出错输出一段静音\n");
             }
             else if (get_size == 0) // 解码缓冲区被冲洗，整个解码过程完毕
@@ -343,14 +364,14 @@ void sdl_audio_callback(void *userdata, uint8_t *stream, int len)
             {
                 //printf("3\n");
                 s_audio_len = get_size;
-                av_packet_unref(p_packet);
+                //av_packet_unref(p_packet);
             }
             s_tx_idx = 0;
 
-            if (p_packet->data != NULL)
-            {
-                av_packet_unref(p_packet);
-            }
+            // if (p_packet->data != NULL)
+            // {
+            //     av_packet_unref(p_packet);
+            // }
         }
 
         copy_len = s_audio_len - s_tx_idx;
@@ -366,7 +387,7 @@ void sdl_audio_callback(void *userdata, uint8_t *stream, int len)
         s_tx_idx += copy_len;
     }
 }
-
+int myAVPacket::num=0;
 int main(int argc, char *argv[])
 {
     // Initalizing these to NULL prevents segfaults!
@@ -374,7 +395,7 @@ int main(int argc, char *argv[])
     AVCodecContext*     p_codec_ctx = NULL;
     AVCodecParameters*  p_codec_par = NULL;
     AVCodec*            p_codec = NULL;
-    AVPacket*           p_packet = NULL;
+    //myAVPacket           p_packet ;
 
     SDL_AudioSpec       wanted_spec;
     //SDL_AudioSpec       actual_spec;
@@ -475,13 +496,13 @@ int main(int argc, char *argv[])
         goto exit2;
     }
 
-    p_packet = (AVPacket *)av_malloc(sizeof(AVPacket));
-    if (p_packet == NULL)
-    {  
-        printf("av_malloc() failed\n");  
-        res = -1;
-        goto exit2;
-    }
+    //p_packet = (AVPacket *)av_malloc(sizeof(AVPacket));
+    // if (p_packet == NULL)
+    // {  
+    //     printf("av_malloc() failed\n");  
+    //     res = -1;
+    //     goto exit2;
+    // }
 
     // B1. 初始化SDL子系统：缺省(事件处理、文件IO、线程)、视频、音频、定时器
     if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER))
@@ -540,17 +561,22 @@ int main(int argc, char *argv[])
     // A4. 从视频文件中读取一个packet，此处仅处理音频packet
     //     对于音频来说，若是帧长固定的格式则一个packet可包含整数个frame，
     //                   若是帧长可变的格式则一个packet只包含一个frame
-    while (av_read_frame(p_fmt_ctx, p_packet) == 0)
+    ret=0;
+    while ( ret== 0)
     {
-        if (p_packet->stream_index == a_idx)
+        std::unique_ptr<myAVPacket> p_packet(new myAVPacket());
+        ret=av_read_frame(p_fmt_ctx, &p_packet->mypkt);
+        
+        if (p_packet->mypkt.stream_index == a_idx)
         {
-            //printf("4\n");
-            packet_queue_push(&s_audio_pkt_queue, p_packet);
+            printf("call in queue\n");
+            packet_queue_push(&s_audio_pkt_queue, std::move(p_packet));
         }
         else
         {
-            av_packet_unref(p_packet);
+            //av_packet_unref(p_packet);
         }
+        //std::cout<<"de 1";
     }
     SDL_Delay(40);
     s_input_finished = true;
@@ -565,7 +591,7 @@ int main(int argc, char *argv[])
 exit4:
     SDL_Quit();
 exit3:
-    av_packet_unref(p_packet);
+    //av_packet_unref(p_packet);
 exit2:
     avcodec_free_context(&p_codec_ctx);
 exit1:

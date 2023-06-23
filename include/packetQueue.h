@@ -6,6 +6,18 @@
 #include <mutex>
 #include <condition_variable>
 #include <iostream>
+class myAVPacket{
+    public:
+        myAVPacket(){num++;}
+        myAVPacket(AVPacket pkt):mypkt(pkt),size(pkt.size){}
+        ~myAVPacket(){
+            std::cout<<"destory num "<<num<<std::endl;
+            av_packet_unref(&mypkt);
+        }
+        AVPacket mypkt;
+        int size;
+        static int num;
+};
 
 class packetQueue{
     public:
@@ -16,7 +28,7 @@ class packetQueue{
         int packet_queue_push(AVPacket *pkt);
         int packet_queue_pop(AVPacket *pkt, int block);
     private:
-        std::list<AVPacket> pkts;
+        std::list<std::unique_ptr<myAVPacket>> pkts_ptr;
         int size=0;         // 队列中AVPacket总的大小(字节数)
         std::mutex Mutex;
         std::condition_variable cond;

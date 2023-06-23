@@ -22,11 +22,11 @@ class myAVPacket{
 class packetQueue{
     public:
         packetQueue(){std::cout<<"packet queue create"<<std::endl;}
-        ~packetQueue(){pkts.clear();std::cout<<"packet queue destoryed"<<std::endl;}
+        ~packetQueue(){pkts_ptr.clear();std::cout<<"packet queue destoryed"<<std::endl;}
 
 
-        int packet_queue_push(AVPacket *pkt);
-        int packet_queue_pop(AVPacket *pkt, int block);
+        int packet_queue_push(std::unique_ptr<myAVPacket> pkt_ptr);
+        int packet_queue_pop(std::unique_ptr<myAVPacket>& pkt_ptr, int block);
     private:
         std::list<std::unique_ptr<myAVPacket>> pkts_ptr;
         int size=0;         // 队列中AVPacket总的大小(字节数)

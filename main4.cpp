@@ -70,10 +70,10 @@ int packet_queue_push(packet_queue_t *q, std::unique_ptr<myAVPacket> pkt_ptr)
 {
     //SDL_LockMutex(q->mutex);
     std::unique_lock<std::mutex> lock(q->Mutex);
-        std::cout<<"de 1";
+        //std::cout<<"de 1";
     q->size += pkt_ptr->size;
     q->pkts_ptr.push_back(std::move(pkt_ptr));
-    std::cout<<"de 2";
+    //std::cout<<"de 2";
     // 发个条件变量的信号：重启等待q->cond条件变量的一个线程
     // SDL_CondSignal(q->cond);
 
@@ -496,13 +496,6 @@ int main(int argc, char *argv[])
         goto exit2;
     }
 
-    //p_packet = (AVPacket *)av_malloc(sizeof(AVPacket));
-    // if (p_packet == NULL)
-    // {  
-    //     printf("av_malloc() failed\n");  
-    //     res = -1;
-    //     goto exit2;
-    // }
 
     // B1. 初始化SDL子系统：缺省(事件处理、文件IO、线程)、视频、音频、定时器
     if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_TIMER))
@@ -569,7 +562,7 @@ int main(int argc, char *argv[])
         
         if (p_packet->mypkt.stream_index == a_idx)
         {
-            printf("call in queue\n");
+            //printf("call in queue\n");
             packet_queue_push(&s_audio_pkt_queue, std::move(p_packet));
         }
         else

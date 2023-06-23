@@ -4,10 +4,8 @@
 
 #include "renderer.h"
 #include "packetQueue.h"
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libswscale/swscale.h>
-#include <libavutil/imgutils.h>
+#include <thread>
+
 
 class Decoder {
 public:
@@ -16,13 +14,14 @@ public:
 
     int present_One_frame(); 
 
-    
+    void get_Packets(AVFormatContext*);
 
 
     AVCodecContext* p_codec_ctx = NULL; 
     SwsContext* sws_ctx = NULL; 
-    AVPacket* p_packet = NULL;
-    packetQueue a_packet_queue;
+    //AVPacket* p_packet = NULL;
+    packetQueue packet_queue;
+    int idx;
 private:
     std::shared_ptr<Frame> frame;
     std::unique_ptr<SdlRenderer> renderer;
@@ -33,9 +32,14 @@ private:
     void sws_scaling();//图像缩放
 };
 
+class videoDecoder:public Decoder{
+    public:
+
+};
+
 class audioDecoder:public Decoder{
     public:
-        AVCodecContext* a_p_codec_ctx = NULL;
+
 };
 
 #endif

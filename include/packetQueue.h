@@ -8,15 +8,15 @@
 #include <iostream>
 class myAVPacket{
     public:
-        myAVPacket(){num++;}
+        myAVPacket(){}
         myAVPacket(AVPacket pkt):mypkt(pkt),size(pkt.size){}
         ~myAVPacket(){
-            std::cout<<"destory num "<<num<<std::endl;
+            //std::cout<<"destory num "<<num<<std::endl;
             av_packet_unref(&mypkt);
         }
         AVPacket mypkt;
         int size;
-        static int num;
+        //static int num;
 };
 
 class packetQueue{

@@ -3,18 +3,19 @@ project(MyPlayer)
 
 # 设置源代码目录
 set(SOURCES
-    #main.cpp
+    main.cpp
     #main1.cpp
     #main2.cpp
     #main3.c
-    main4.cpp
+    #main4.cpp
     #main5.cpp
     #ffplayer.c
     #tutorial03.c
-    #src/decoder.cpp
-    #src/frame.cpp
-    #src/renderer.cpp
-    #src/video.cpp
+    src/decoder.cpp
+    src/frame.cpp
+    src/renderer.cpp
+    src/video.cpp
+    src/packetQueue.cpp
     # 添加其他源文件
 )
 

@@ -87,29 +87,31 @@ Video::~Video()
 
 
 
-void Video::read_One_frame_packet(){
-    // A8. 从视频文件中读取一个packet
-    //     packet可能是视频帧、音频帧或其他数据，解码器只会解码视频帧或音频帧，非音视频数据并不会被
-    //     扔掉、从而能向解码器提供尽可能多的信息
-    //     对于视频来说，一个packet只包含一个frame
-    //     对于音频来说，若是帧长固定的格式则一个packet可包含整数个frame，
-    //                   若是帧长可变的格式则一个packet只包含一个frame
-    while (av_read_frame(p_fmt_ctx, v_decoder->p_packet) == 0)
-    {
-        if (v_decoder->p_packet->stream_index == v_idx)  // 取到一帧视频帧，则退出
-        {
-            break;
-        }
-    }
-}
+// void Video::read_One_frame_packet(){
+//     // A8. 从视频文件中读取一个packet
+//     //     packet可能是视频帧、音频帧或其他数据，解码器只会解码视频帧或音频帧，非音视频数据并不会被
+//     //     扔掉、从而能向解码器提供尽可能多的信息
+//     //     对于视频来说，一个packet只包含一个frame
+//     //     对于音频来说，若是帧长固定的格式则一个packet可包含整数个frame，
+//     //                   若是帧长可变的格式则一个packet只包含一个frame
+//     while (av_read_frame(p_fmt_ctx, v_decoder->p_packet) == 0)
+//     {
+//         if (v_decoder->p_packet->stream_index == v_idx)  // 取到一帧视频帧，则退出
+//         {
+//             break;
+//         }
+//     }
+// }
 
 void Video::play(){
+    v_decoder->get_Packets(p_fmt_ctx);
+    a_decoder->get_Packets(p_fmt_ctx);
     while(1){
         // B6. 等待刷新事件
         SDL_WaitEvent(&sdl_event);
         if (sdl_event.type == SDL_USEREVENT_REFRESH)
         {
-            read_One_frame_packet();
+            //read_One_frame_packet();
             int ret;
             try{ret=v_decoder->present_One_frame();}
             catch(const std::exception&e){

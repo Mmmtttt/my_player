@@ -3,10 +3,10 @@
 #include <iostream>
 #include <libswscale/swscale.h>
 
-Decoder::Decoder(AVFormatContext* p_fmt_ctx,int v_idx,int frame_rate)
+Decoder::Decoder(AVFormatContext* p_fmt_ctx,int _idx,int frame_rate):idx(_idx)
 {
     // A5.1 获取解码器参数AVCodecParameters
-    AVCodecParameters *p_codec_par = p_fmt_ctx->streams[v_idx]->codecpar;
+    AVCodecParameters *p_codec_par = p_fmt_ctx->streams[_idx]->codecpar;
 
     // A5.2 获取解码器
     const AVCodec* p_codec = avcodec_find_decoder(p_codec_par->codec_id);
@@ -58,12 +58,6 @@ Decoder::Decoder(AVFormatContext* p_fmt_ctx,int v_idx,int frame_rate)
         throw std::runtime_error("create renderer failed\n");
     }
 
-    p_packet = (AVPacket *)av_malloc(sizeof(AVPacket));
-    if (p_packet == NULL)
-    {  
-        avcodec_free_context(&p_codec_ctx);
-        throw std::runtime_error("create p_packet failed "); 
-    }
 
 
     // A7. 初始化SWS context，用于后续图像转换
@@ -95,7 +89,7 @@ Decoder::~Decoder()
 {
     avcodec_free_context(&p_codec_ctx);
     sws_freeContext(sws_ctx);
-    av_packet_unref(p_packet);
+    //av_packet_unref(p_packet);
 }
 
 
@@ -123,7 +117,9 @@ void Decoder::sws_scaling(){
 }
 
 void Decoder::get_Frame_packet(){
-    int ret = avcodec_send_packet(p_codec_ctx, p_packet);
+    std::unique_ptr<myAVPacket> temp;
+    packet_queue.packet_queue_pop(temp,1);
+    int ret = avcodec_send_packet(p_codec_ctx, &temp->mypkt);
     if (ret != 0)
     {
         throw std::runtime_error("avcodec_send_packet() failed ");
@@ -159,6 +155,16 @@ int Decoder::present_One_frame(){
     }
     sws_scaling();
     renderer->renderFrame();
-    av_packet_unref(p_packet);
+    //av_packet_unref(p_packet);
     return 1;
+}
+
+void Decoder::get_Packets(AVFormatContext*p_fmt_ctx){
+    int ret=0;
+    while(ret==0){
+        std::unique_ptr<myAVPacket> temp(new myAVPacket);
+        ret=av_read_frame(p_fmt_ctx, &temp->mypkt);
+        if(temp->mypkt.stream_index==idx)
+            packet_queue.packet_queue_push(std::move(temp));
+    }
 }

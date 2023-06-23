@@ -1,21 +1,3 @@
-/*******************************************************************************
- * ffplayer.c
- *
- * history:
- *   2018-11-27 - [lei]     Create file: a simplest ffmpeg player
- *   2018-12-01 - [lei]     Playing audio
- *   2019-01-06 - [lei]     Add audio resampling, fix bug of unsupported audio 
- *                          format(such as planar)
- *
- * details:
- *   A simple ffmpeg player.
- *
- * refrence:
- *   1. https://blog.csdn.net/leixiaohua1020/article/details/38868499
- *   2. http://dranger.com/ffmpeg/ffmpegtutorial_all.html#tutorial01.html
- *   3. http://dranger.com/ffmpeg/ffmpegtutorial_all.html#tutorial02.html
- *   4. http://dranger.com/ffmpeg/ffmpegtutorial_all.html#tutorial03.html
- *******************************************************************************/
 extern "C" {
 #include <stdio.h>
 #include <stdbool.h>
@@ -29,17 +11,17 @@ extern "C" {
 #include <SDL.h>
 }
 #include <list>
+#include <mutex>
+#include <condition_variable>
 #define SDL_AUDIO_BUFFER_SIZE 1024
 #define MAX_AUDIO_FRAME_SIZE 192000
 
 typedef struct packet_queue_t
 {
-    AVPacketList *first_pkt;
-    AVPacketList *last_pkt;
-    int nb_packets;   // 队列中AVPacket的个数
-    int size;         // 队列中AVPacket总的大小(字节数)
-    SDL_mutex *mutex;
-    SDL_cond *cond;
+    std::list<AVPacket> pkts;
+    int size=0;         // 队列中AVPacket总的大小(字节数)
+        std::mutex Mutex;
+        std::condition_variable cond;
 } packet_queue_t;
 
 typedef struct AudioParams {
@@ -63,72 +45,41 @@ static bool s_decode_finished = false;  // 解码完毕
 
 void packet_queue_init(packet_queue_t *q)
 {
-    memset(q, 0, sizeof(packet_queue_t));
-    q->mutex = SDL_CreateMutex();
-    q->cond = SDL_CreateCond();
+    q= new packet_queue_t();
+    // q->mutex = SDL_CreateMutex();
+    // q->cond = SDL_CreateCond();
 }
 
 // 写队列尾部。pkt是一包还未解码的音频数据
 int packet_queue_push(packet_queue_t *q, AVPacket *pkt)
 {
-    AVPacketList *pkt_list;
-    
-    if (av_packet_make_refcounted(pkt) < 0)
-    {
-        printf("[pkt] is not refrence counted\n");
-        return -1;
-    }
-    pkt_list = (AVPacketList *)av_malloc(sizeof(AVPacketList));
-    if (!pkt_list)
-    {
-        return -1;
-    }
-    
-    pkt_list->pkt = *pkt;
-    pkt_list->next = NULL;
+    //SDL_LockMutex(q->mutex);
+std::unique_lock<std::mutex> lock(q->Mutex);
 
-    SDL_LockMutex(q->mutex);
-
-    if (!q->last_pkt)   // 队列为空
-    {
-        q->first_pkt = pkt_list;
-    }
-    else
-    {
-        q->last_pkt->next = pkt_list;
-    }
-    q->last_pkt = pkt_list;
-    q->nb_packets++;
-    q->size += pkt_list->pkt.size;
+    q->pkts.push_back(*pkt);
+    q->size += pkt->size;
     // 发个条件变量的信号：重启等待q->cond条件变量的一个线程
-    SDL_CondSignal(q->cond);
+    // SDL_CondSignal(q->cond);
 
-    SDL_UnlockMutex(q->mutex);
+    // SDL_UnlockMutex(q->mutex);
+        q->cond.notify_one();
+    lock.unlock();
     return 0;
 }
 
 // 读队列头部。
 int packet_queue_pop(packet_queue_t *q, AVPacket *pkt, int block)
 {
-    AVPacketList *p_pkt_node;
     int ret;
 
-    SDL_LockMutex(q->mutex);
-
+    //SDL_LockMutex(q->mutex);
+std::unique_lock<std::mutex> lock(q->Mutex);
     while (1)
     {
-        p_pkt_node = q->first_pkt;
-        if (p_pkt_node)             // 队列非空，取一个出来
+        if (q->pkts.size())             // 队列非空，取一个出来
         {
-            q->first_pkt = p_pkt_node->next;
-            if (!q->first_pkt)
-            {
-                q->last_pkt = NULL;
-            }
-            q->nb_packets--;
-            q->size -= p_pkt_node->pkt.size;
-            *pkt = p_pkt_node->pkt;
-            av_free(p_pkt_node);
+            *pkt=q->pkts.front();
+            q->pkts.pop_front();
             ret = 1;
             break;
         }
@@ -144,10 +95,12 @@ int packet_queue_pop(packet_queue_t *q, AVPacket *pkt, int block)
         }
         else                        // 队列空且阻塞标志有效，则等待
         {
-            SDL_CondWait(q->cond, q->mutex);
+            //SDL_CondWait(q->cond, q->mutex);
+            q->cond.wait(lock);
         }
     }
-    SDL_UnlockMutex(q->mutex);
+    //SDL_UnlockMutex(q->mutex);
+    lock.unlock();
     return ret;
 }
 

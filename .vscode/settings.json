@@ -90,6 +90,8 @@
     "inttypes.h": "c",
     "avfft.h": "c",
     "avfilter.h": "c",
-    "postprocess.h": "c"
+    "postprocess.h": "c",
+    "condition_variable": "cpp",
+    "mutex": "cpp"
   }
 }

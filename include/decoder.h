@@ -3,6 +3,7 @@
 
 
 #include "renderer.h"
+#include "packetQueue.h"
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
@@ -21,6 +22,7 @@ public:
     AVCodecContext* p_codec_ctx = NULL; 
     SwsContext* sws_ctx = NULL; 
     AVPacket* p_packet = NULL;
+    packetQueue a_packet_queue;
 private:
     std::shared_ptr<Frame> frame;
     std::unique_ptr<SdlRenderer> renderer;

@@ -33,4 +33,9 @@ private:
     void sws_scaling();//图像缩放
 };
 
+class audioDecoder:public Decoder{
+    public:
+        AVCodecContext* a_p_codec_ctx = NULL;
+};
+
 #endif

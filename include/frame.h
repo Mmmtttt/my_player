@@ -44,7 +44,7 @@ private:
 
 class audioFrame {
 public:
-    audioFrame(SwrContext *swr_ctx,AVCodecContext* p_codec_ctx);
+    audioFrame(SwrContext *swr_ctx,AVCodecContext* p_codec_ctx,FF_AudioParams s_audio_param_tgt);
     ~audioFrame();
 
     int reSample(SwrContext *swr_ctx,AVCodecContext* p_codec_ctx);

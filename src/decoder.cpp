@@ -3,6 +3,8 @@
 #include <iostream>
 #include <libswscale/swscale.h>
 std::shared_ptr<audioDecoder> static_a_decoder;
+packetQueue video_packet_queue;
+packetQueue audio_packet_queue;
 
 Decoder::Decoder(AVFormatContext* p_fmt_ctx,int _idx,int frame_rate):idx(_idx)
 {
@@ -50,11 +52,9 @@ Decoder::~Decoder()
 
 void Decoder::get_Packet(){
     std::unique_ptr<myAVPacket> temp;
-    //std::cout<<packet_queue.pkts_ptr.size()<<std::endl;
-    packet_queue.packet_queue_pop(temp,1);
-    //std::cout<<"111"<<std::endl;
+    if(idx==0) {video_packet_queue.packet_queue_pop(temp,1);}//std::cout<<"get video pkt "<<temp->size<<std::endl;}
+    else {audio_packet_queue.packet_queue_pop(temp,1);}//std::cout<<"get audio pkt "<<temp->size<<std::endl;}
     int ret = avcodec_send_packet(p_codec_ctx, &temp->mypkt);
-    //std::cout<<"222"<<std::endl;
     if (ret != 0)
     {
         throw std::runtime_error("avcodec_send_packet() failed ");
@@ -66,8 +66,12 @@ void Decoder::push_All_Packets(AVFormatContext*p_fmt_ctx){
     while(ret==0){
         std::unique_ptr<myAVPacket> temp(new myAVPacket);
         ret=av_read_frame(p_fmt_ctx, &temp->mypkt);
-        if(temp->mypkt.stream_index==idx)
-            packet_queue.packet_queue_push(std::move(temp));
+        temp->size=temp->mypkt.size;
+        if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO)
+            video_packet_queue.packet_queue_push(std::move(temp));
+        else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
+            audio_packet_queue.packet_queue_push(std::move(temp));
+        }
     }
 }
 
@@ -251,13 +255,16 @@ int audioDecoder::present_One_frame(){
     // }
     int ret ;
     //while(1){
-        //get_Packet();
+        get_Packet();
         try{ret=decode_One_frame();} 
         catch(const std::exception&e){
             throw std::runtime_error(e.what());
         }
-        if(ret==-1) {get_Packet();ret=decode_One_frame();return -1;}
-        renderer->renderFrame(p_codec_ctx);
+        if(ret==-1) {get_Packet();return -1;}
+        try{renderer->renderFrame(p_codec_ctx);}
+        catch(const std::exception&e){
+            throw std::runtime_error(e.what());
+        }
         SDL_PauseAudio(0);
     //}
     //av_packet_unref(p_packet);
@@ -276,34 +283,35 @@ void audioDecoder::sdl_audio_callback(void *userdata, uint8_t *stream, int len){
     int ret_size = 0;
     int ret;
 
-    get_size=static_a_decoder->decode_One_frame();
-    if (get_size < 0)
-    {
-        // 出错输出一段静音
-        s_audio_len = 1024; // arbitrary?
-        memset(s_audio_buf, 0, s_audio_len);
-        //av_packet_unref(p_packet);
-        printf("出错输出一段静音\n");
-    }
-    else if (get_size == 0) // 解码缓冲区被冲洗，整个解码过程完毕
-    {
-        printf("2\n");
-    }
-    else
-    {
-        //printf("3\n");
-        s_audio_len = get_size;
-        //av_packet_unref(p_packet);
-    }
-    s_tx_idx = 0;
-    copy_len = s_audio_len - s_tx_idx;
-        if (copy_len > len)
-        {
-            copy_len = len;
-        }
-        memcpy(stream, (uint8_t *)s_audio_buf + s_tx_idx, copy_len);
-        len -= copy_len;
-        stream += copy_len;
-        s_tx_idx += copy_len;
-
+    //get_size=static_a_decoder->decode_One_frame();
+    // if (get_size < 0)
+    // {
+    //     // 出错输出一段静音
+    //     s_audio_len = 1024; // arbitrary?
+    //     memset(s_audio_buf, 0, s_audio_len);
+    //     //av_packet_unref(p_packet);
+    //     printf("error silence\n");
+    // }
+    // else if (get_size == 0) // 解码缓冲区被冲洗，整个解码过程完毕
+    // {
+    //     printf("2\n");
+    // }
+    // else
+    // {
+    //     //printf("3\n");
+    //     s_audio_len = get_size;
+    //     //av_packet_unref(p_packet);
+    // }
+    // s_tx_idx = 0;
+    // copy_len = s_audio_len - s_tx_idx;
+    //     if (copy_len > len)
+    //     {
+    //         copy_len = len;
+    //     }
+    //     memcpy(stream, (uint8_t *)s_audio_buf + s_tx_idx, copy_len);
+    //     len -= copy_len;
+    //     stream += copy_len;
+    //     s_tx_idx += copy_len;
+    if(static_a_decoder->renderer->audio_buf==NULL)throw std::runtime_error("audio_buf is null");
+    memcpy(stream,static_a_decoder->renderer->audio_buf,static_a_decoder->renderer->frame->cp_len);
 }

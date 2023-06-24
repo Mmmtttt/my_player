@@ -1,4 +1,5 @@
 #include "renderer.h"
+#include "decoder.h"
 #include <iostream>
 
 videoSdlRenderer::videoSdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<videoFrame> _frame,int frame_rate):frame(_frame)
@@ -152,7 +153,7 @@ audioSdlRenderer::audioSdlRenderer(AVCodecContext* p_codec_ctx,int frame_rate){
     wanted_spec.channels = p_codec_ctx->channels;   // 声道数
     wanted_spec.silence = 0;                        // 静音值
     wanted_spec.samples = SDL_AUDIO_BUFFER_SIZE;    // SDL声音缓冲区尺寸，单位是单声道采样点尺寸x通道数
-    //wanted_spec.callback = sdl_audio_callback;      // 回调函数，若为NULL，则应使用SDL_QueueAudio()机制
+    wanted_spec.callback = audioDecoder::sdl_audio_callback;      // 回调函数，若为NULL，则应使用SDL_QueueAudio()机制
     wanted_spec.userdata = p_codec_ctx;             // 提供给回调函数的参数
     if (SDL_OpenAudio(&wanted_spec, NULL) < 0)
     {
@@ -177,15 +178,15 @@ audioSdlRenderer::audioSdlRenderer(AVCodecContext* p_codec_ctx,int frame_rate){
     }
     
 
-    try{frame=std::make_shared<audioFrame>(swr_ctx,p_codec_ctx);}
+    try{frame=std::make_shared<audioFrame>(swr_ctx,p_codec_ctx,s_audio_param_tgt);}
     catch(const std::exception& e)
     {
         std::cout<<e.what()<<std::endl;
         avcodec_free_context(&p_codec_ctx);
-        throw std::runtime_error("create frame failed\n");
+        throw std::runtime_error("create audioframe failed\n");
     }
     
-    frame->s_audio_param_src = s_audio_param_tgt;
+    
 }
 
 audioSdlRenderer::~audioSdlRenderer(){
@@ -194,10 +195,17 @@ audioSdlRenderer::~audioSdlRenderer(){
 }
 
 int audioSdlRenderer::renderFrame(AVCodecContext *p_codec_ctx){
-    
-    frame->reSample(swr_ctx,p_codec_ctx);
+    //std::cout<<"111"<<std::endl;
+    try{frame->reSample(swr_ctx,p_codec_ctx);}
+    catch(const std::exception&e){
+            throw std::runtime_error(e.what());
+    }
+    //std::cout<<"222"<<std::endl;
     // 将音频帧拷贝到函数输出参数audio_buf
+    buf_size=frame->cp_len;
+    audio_buf=(uint8_t *)malloc(sizeof(uint8_t)*buf_size);
     memcpy(audio_buf, frame->p_cp_buf, frame->cp_len);
+    //std::cout<<"333"<<std::endl;
     //res = cp_len;
 }
 

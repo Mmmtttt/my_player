@@ -36,13 +36,13 @@ Video::Video(const std::string& filename):filename(filename)
             printf("Find a video stream, index %d\n", v_idx);
             frame_rate = p_fmt_ctx->streams[i]->avg_frame_rate.num /
                          p_fmt_ctx->streams[i]->avg_frame_rate.den;
-            break;
+            
         }
         else if(p_fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
         {
             a_idx = i;
             printf("Find a audio stream, index %d\n", a_idx);
-            break;
+            
         }
     }
     if (v_idx == -1)
@@ -74,7 +74,7 @@ Video::Video(const std::string& filename):filename(filename)
     }
     static_a_decoder=a_decoder;
     
-    
+//std::cout<<"done2"<<std::endl;
     
 }
 
@@ -89,7 +89,9 @@ Video::~Video()
 
 void Video::play(){
     v_decoder->push_All_Packets(p_fmt_ctx);
+    //std::cout<<"done1"<<std::endl;
     a_decoder->push_All_Packets(p_fmt_ctx);
+    //std::cout<<"done2"<<std::endl;
     while(1){
         // B6. 等待刷新事件
         SDL_WaitEvent(&sdl_event);
@@ -102,7 +104,11 @@ void Video::play(){
                 std::cout<<e.what()<<std::endl;
                 return;
             } 
-            a_decoder->present_One_frame();
+            try{a_decoder->present_One_frame();}
+            catch(const std::exception&e){
+                std::cout<<e.what()<<std::endl;
+                return;
+            }
             if(ret==-1) continue;
         }
         else if (sdl_event.type == SDL_KEYDOWN)

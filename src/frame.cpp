@@ -63,20 +63,31 @@ videoFrame::~videoFrame()
 
 
 
-audioFrame::audioFrame(SwrContext *swr_ctx,AVCodecContext* p_codec_ctx){
+audioFrame::audioFrame(SwrContext *swr_ctx,AVCodecContext* p_codec_ctx,FF_AudioParams s_audio_param_tgt){
+    s_audio_param_src = s_audio_param_tgt;
+    
     frame = av_frame_alloc();
     if (frame == NULL)
     {
         throw std::runtime_error("av_frame_alloc() for frame failed");
     }
 
-    avcodec_receive_frame(p_codec_ctx, frame);
+    //avcodec_receive_frame(p_codec_ctx, frame);
 
+    
+
+}
+
+audioFrame::~audioFrame(){
+    av_frame_unref(frame);
+}
+
+int audioFrame::reSample(SwrContext *swr_ctx,AVCodecContext* p_codec_ctx){
     if (frame->format         != s_audio_param_src.fmt            ||
                 frame->channel_layout != s_audio_param_src.channel_layout ||
                 frame->sample_rate    != s_audio_param_src.freq)
-    {
-        swr_free(&swr_ctx);
+    {//std::cout<<"d1"<<std::endl;
+        //swr_free(&swr_ctx);std::cout<<"done"<<std::endl;
         // 使用frame(源)和is->audio_tgt(目标)中的音频参数来设置is->swr_ctx
         swr_ctx = swr_alloc_set_opts(NULL,
                                     s_audio_param_src.channel_layout, 
@@ -86,7 +97,7 @@ audioFrame::audioFrame(SwrContext *swr_ctx,AVCodecContext* p_codec_ctx){
                                     (AVSampleFormat)frame->format, 
                                     frame->sample_rate,
                                     0,
-                                    NULL);
+                                    NULL);//std::cout<<"d2"<<std::endl;
         if (swr_ctx == NULL || swr_init(swr_ctx) < 0)
         {
             printf("Cannot create sample rate converter for conversion of %d Hz %s %d channels to %d Hz %s %d channels!\n",
@@ -102,14 +113,6 @@ audioFrame::audioFrame(SwrContext *swr_ctx,AVCodecContext* p_codec_ctx){
         s_audio_param_src.freq           = frame->sample_rate;
         s_audio_param_src.fmt            = (AVSampleFormat)frame->format;
     }
-
-}
-
-audioFrame::~audioFrame(){
-    av_frame_unref(frame);
-}
-
-int audioFrame::reSample(SwrContext *swr_ctx,AVCodecContext* p_codec_ctx){
     if (swr_ctx != NULL)        // 重采样
     {
         // 重采样输入参数1：输入音频样本数是p_frame->nb_samples

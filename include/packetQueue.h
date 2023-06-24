@@ -27,7 +27,7 @@ class packetQueue{
 
         int packet_queue_push(std::unique_ptr<myAVPacket> pkt_ptr);
         int packet_queue_pop(std::unique_ptr<myAVPacket>& pkt_ptr, int block);
-    private:
+    //private:
         std::list<std::unique_ptr<myAVPacket>> pkts_ptr;
         int size=0;         // 队列中AVPacket总的大小(字节数)
         std::mutex Mutex;

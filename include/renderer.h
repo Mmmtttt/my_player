@@ -6,11 +6,22 @@
 
 
 #define SDL_USEREVENT_REFRESH  (SDL_USEREVENT + 1)
+#define SDL_AUDIO_BUFFER_SIZE 1024
+#define MAX_AUDIO_FRAME_SIZE 192000
 
-class SdlRenderer {
+class SdlRenderer{
+    public:
+        SdlRenderer(){}
+        ~SdlRenderer(){}
+    
+        //std::shared_ptr<Frame> frame;
+};
+
+
+class videoSdlRenderer :public SdlRenderer{
 public:
-    SdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<Frame> frame,int frame_rate);
-    ~SdlRenderer();
+    videoSdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<videoFrame> frame,int frame_rate);
+    ~videoSdlRenderer();
 
     void renderFrame();
 
@@ -18,7 +29,7 @@ public:
 
 
 private:
-    std::shared_ptr<Frame> frame;
+    std::shared_ptr<videoFrame> frame;
     SDL_Window*         screen; 
     SDL_Renderer*       sdl_renderer;
     SDL_Texture*        sdl_texture;
@@ -26,5 +37,30 @@ private:
     SDL_Thread*         sdl_thread;
     
 };
+
+
+
+
+class audioSdlRenderer:public SdlRenderer{
+    public:
+        audioSdlRenderer(AVCodecContext* p_codec_ctx,int frame_rate);
+        ~audioSdlRenderer();
+
+        int renderFrame(AVCodecContext *p_codec_ctx);
+
+        //static void sdl_audio_callback(void *userdata, uint8_t *stream, int len);
+        std::shared_ptr<audioFrame> frame;
+    
+        SDL_AudioSpec       wanted_spec;
+        
+        FF_AudioParams s_audio_param_tgt;
+
+        SwrContext *swr_ctx;
+        
+
+        uint8_t *audio_buf;
+        int buf_size;
+};
+
 
 #endif

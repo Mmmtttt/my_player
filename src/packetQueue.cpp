@@ -20,11 +20,12 @@ std::unique_lock<std::mutex> lock(Mutex);
     while (1)
     {
         if (pkts_ptr.size())             // 队列非空，取一个出来
-        {//std::cout<<q->pkts.size()<<std::endl;
-            pkt_ptr=std::move(pkts_ptr.front());//std::cout<<q->pkts.front().mypkt.buf<<std::endl;
+        {//std::cout<<pkts_ptr.size()<<std::endl;
+            size -= pkts_ptr.front()->size;
+            pkt_ptr=std::move(pkts_ptr.front());//std::cout<<pkts_ptr.front().mypkt.buf<<std::endl;
         //std::cout<<"de 1";
             pkts_ptr.pop_front();//std::cout<<q->pkts.size()<<std::endl;
-        //std::cout<<"de 1";
+        //std::cout<<"de 2";
 
             ret = 1;//std::cout<<pkt.size<<std::endl;
             break;

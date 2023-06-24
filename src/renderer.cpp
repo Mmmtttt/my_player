@@ -1,10 +1,10 @@
 #include "renderer.h"
 #include <iostream>
 
-SdlRenderer::SdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<Frame> _frame,int frame_rate):frame(_frame)
+videoSdlRenderer::videoSdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<videoFrame> _frame,int frame_rate):frame(_frame)
 {
     // B1. 初始化SDL子系统：缺省(事件处理、文件IO、线程)、视频、音频、定时器
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER))
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO))
     {  
         throw std::runtime_error("SDL_Init() failed"); 
     }
@@ -70,18 +70,19 @@ SdlRenderer::SdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<Frame> _fra
     
 }
 
-SdlRenderer::~SdlRenderer()
+videoSdlRenderer::~videoSdlRenderer()
 {
     SDL_DestroyTexture(sdl_texture);
     SDL_DestroyRenderer(sdl_renderer);
     SDL_DestroyWindow(screen);
+    std::cout<<"videoSdlRenderer destoryed"<<std::endl;
 }
 
 
 
 
 // 按照opaque传入的播放帧率参数，按固定间隔时间发送刷新事件
-int SdlRenderer::sdl_thread_handle_refreshing(void *opaque)
+int videoSdlRenderer::sdl_thread_handle_refreshing(void *opaque)
 {
     SDL_Event sdl_event;
 
@@ -103,7 +104,7 @@ int SdlRenderer::sdl_thread_handle_refreshing(void *opaque)
     return 0;
 }
 
-void SdlRenderer::renderFrame(){
+void videoSdlRenderer::renderFrame(){
     // B7. 使用新的YUV像素数据更新SDL_Rect
     SDL_UpdateYUVTexture(sdl_texture,                   // sdl texture
             &sdl_rect,                     // sdl rect
@@ -129,3 +130,75 @@ void SdlRenderer::renderFrame(){
 
 
 }
+
+
+
+
+audioSdlRenderer::audioSdlRenderer(AVCodecContext* p_codec_ctx,int frame_rate){
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO))
+    {  
+        throw std::runtime_error("SDL_Init() failed"); 
+    }
+
+
+    // B2. 打开音频设备并创建音频处理线程
+    // B2.1 打开音频设备，获取SDL设备支持的音频参数actual_spec(期望的参数是wanted_spec，实际得到actual_spec)
+    // 1) SDL提供两种使音频设备取得音频数据方法：
+    //    a. push，SDL以特定的频率调用回调函数，在回调函数中取得音频数据
+    //    b. pull，用户程序以特定的频率调用SDL_QueueAudio()，向音频设备提供数据。此种情况wanted_spec.callback=NULL
+    // 2) 音频设备打开后播放静音，不启动回调，调用SDL_PauseAudio(0)后启动回调，开始正常播放音频
+    wanted_spec.freq = p_codec_ctx->sample_rate;    // 采样率
+    wanted_spec.format = AUDIO_S16SYS;              // S表带符号，16是采样深度，SYS表采用系统字节序
+    wanted_spec.channels = p_codec_ctx->channels;   // 声道数
+    wanted_spec.silence = 0;                        // 静音值
+    wanted_spec.samples = SDL_AUDIO_BUFFER_SIZE;    // SDL声音缓冲区尺寸，单位是单声道采样点尺寸x通道数
+    //wanted_spec.callback = sdl_audio_callback;      // 回调函数，若为NULL，则应使用SDL_QueueAudio()机制
+    wanted_spec.userdata = p_codec_ctx;             // 提供给回调函数的参数
+    if (SDL_OpenAudio(&wanted_spec, NULL) < 0)
+    {
+        throw std::runtime_error("SDL_OpenAudio() failed: ");
+    }
+
+    // B2.2 根据SDL音频参数构建音频重采样参数
+    // wanted_spec是期望的参数，actual_spec是实际的参数，wanted_spec和auctual_spec都是SDL中的参数。
+    // 此处audio_param是FFmpeg中的参数，此参数应保证是SDL播放支持的参数，后面重采样要用到此参数
+    // 音频帧解码后得到的frame中的音频格式未必被SDL支持，比如frame可能是planar格式，但SDL2.0并不支持planar格式，
+    // 若将解码后的frame直接送入SDL音频缓冲区，声音将无法正常播放。所以需要先将frame重采样(转换格式)为SDL支持的模式，
+    // 然后送再写入SDL音频缓冲区
+    s_audio_param_tgt.fmt = AV_SAMPLE_FMT_S16;
+    s_audio_param_tgt.freq = wanted_spec.freq;
+    s_audio_param_tgt.channel_layout = av_get_default_channel_layout(wanted_spec.channels);;
+    s_audio_param_tgt.channels =  wanted_spec.channels;
+    s_audio_param_tgt.frame_size = av_samples_get_buffer_size(NULL, wanted_spec.channels, 1, s_audio_param_tgt.fmt, 1);
+    s_audio_param_tgt.bytes_per_sec = av_samples_get_buffer_size(NULL, wanted_spec.channels, wanted_spec.freq, s_audio_param_tgt.fmt, 1);
+    if (s_audio_param_tgt.bytes_per_sec <= 0 || s_audio_param_tgt.frame_size <= 0)
+    {
+        throw std::runtime_error("av_samples_get_buffer_size failed");
+    }
+    
+
+    try{frame=std::make_shared<audioFrame>(swr_ctx,p_codec_ctx);}
+    catch(const std::exception& e)
+    {
+        std::cout<<e.what()<<std::endl;
+        avcodec_free_context(&p_codec_ctx);
+        throw std::runtime_error("create frame failed\n");
+    }
+    
+    frame->s_audio_param_src = s_audio_param_tgt;
+}
+
+audioSdlRenderer::~audioSdlRenderer(){
+    swr_free(&swr_ctx);
+    std::cout<<"audioSdlRenderer destoryed"<<std::endl;
+}
+
+int audioSdlRenderer::renderFrame(AVCodecContext *p_codec_ctx){
+    
+    frame->reSample(swr_ctx,p_codec_ctx);
+    // 将音频帧拷贝到函数输出参数audio_buf
+    memcpy(audio_buf, frame->p_cp_buf, frame->cp_len);
+    //res = cp_len;
+}
+
+

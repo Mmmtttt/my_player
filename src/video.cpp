@@ -58,20 +58,21 @@ Video::Video(const std::string& filename):filename(filename)
 
 
 
-    try{v_decoder=std::make_unique<Decoder>(p_fmt_ctx, v_idx ,frame_rate);}
+    try{v_decoder=std::make_unique<videoDecoder>(p_fmt_ctx, v_idx ,frame_rate);}
     catch(const std::exception& e)
     {
         std::cout<<e.what()<<std::endl;
         avformat_close_input(&p_fmt_ctx);
         throw std::runtime_error("create v_decoder failed\n");
     } 
-    try{a_decoder=std::make_unique<Decoder>(p_fmt_ctx, a_idx,frame_rate);}
+    try{a_decoder=std::make_shared<audioDecoder>(p_fmt_ctx, a_idx,frame_rate);}
     catch(const std::exception& e)
     {
         std::cout<<e.what()<<std::endl;
         avformat_close_input(&p_fmt_ctx);
         throw std::runtime_error("create a_decoder failed\n");
     }
+    static_a_decoder=a_decoder;
     
     
     
@@ -86,26 +87,9 @@ Video::~Video()
 
 
 
-
-// void Video::read_One_frame_packet(){
-//     // A8. 从视频文件中读取一个packet
-//     //     packet可能是视频帧、音频帧或其他数据，解码器只会解码视频帧或音频帧，非音视频数据并不会被
-//     //     扔掉、从而能向解码器提供尽可能多的信息
-//     //     对于视频来说，一个packet只包含一个frame
-//     //     对于音频来说，若是帧长固定的格式则一个packet可包含整数个frame，
-//     //                   若是帧长可变的格式则一个packet只包含一个frame
-//     while (av_read_frame(p_fmt_ctx, v_decoder->p_packet) == 0)
-//     {
-//         if (v_decoder->p_packet->stream_index == v_idx)  // 取到一帧视频帧，则退出
-//         {
-//             break;
-//         }
-//     }
-// }
-
 void Video::play(){
-    v_decoder->get_Packets(p_fmt_ctx);
-    a_decoder->get_Packets(p_fmt_ctx);
+    v_decoder->push_All_Packets(p_fmt_ctx);
+    a_decoder->push_All_Packets(p_fmt_ctx);
     while(1){
         // B6. 等待刷新事件
         SDL_WaitEvent(&sdl_event);
@@ -118,6 +102,7 @@ void Video::play(){
                 std::cout<<e.what()<<std::endl;
                 return;
             } 
+            a_decoder->present_One_frame();
             if(ret==-1) continue;
         }
         else if (sdl_event.type == SDL_KEYDOWN)

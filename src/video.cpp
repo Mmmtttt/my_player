@@ -92,6 +92,7 @@ void Video::play(){
     //std::cout<<"done1"<<std::endl;
     a_decoder->push_All_Packets(p_fmt_ctx);
     //std::cout<<"done2"<<std::endl;
+    a_decoder->present_One_frame();
     while(1){
         // B6. 等待刷新事件
         SDL_WaitEvent(&sdl_event);

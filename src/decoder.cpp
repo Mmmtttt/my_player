@@ -254,8 +254,7 @@ int audioDecoder::present_One_frame(){
     //     throw std::runtime_error(e.what());
     // }
     int ret ;
-    //while(1){
-        get_Packet();
+    while(1){
         try{ret=decode_One_frame();} 
         catch(const std::exception&e){
             throw std::runtime_error(e.what());
@@ -265,8 +264,8 @@ int audioDecoder::present_One_frame(){
         catch(const std::exception&e){
             throw std::runtime_error(e.what());
         }
-        SDL_PauseAudio(0);
-    //}
+        //SDL_PauseAudio(0);
+    }
     //av_packet_unref(p_packet);
     return 1;
 }

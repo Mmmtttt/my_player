@@ -4,6 +4,7 @@ extern "C" {
 #include <assert.h>
 #include <sys/time.h>
 
+
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
@@ -15,15 +16,20 @@ extern "C" {
 #include <condition_variable>
 #include <iostream>
 #include <memory>
+#include <chrono>
 #define SDL_AUDIO_BUFFER_SIZE 1024
 #define MAX_AUDIO_FRAME_SIZE 192000
+
+std::chrono::_V2::system_clock::time_point start;
+int time_shaft=0;
+int last_time=0;
 
 class myAVPacket{
     public:
         myAVPacket(){num++;}
         myAVPacket(AVPacket pkt):mypkt(pkt),size(pkt.size){}
         ~myAVPacket(){
-            std::cout<<"destory num "<<num<<std::endl;
+            //std::cout<<"destory num "<<num<<std::endl;
             av_packet_unref(&mypkt);
         }
         AVPacket mypkt;
@@ -57,6 +63,10 @@ static int s_resample_buf_len = 0;      // 重采样输出缓冲区长度
 
 static bool s_input_finished = false;   // 文件读取完毕
 static bool s_decode_finished = false;  // 解码完毕
+
+// 新增全局变量以处理播放速率和播放位置
+static int s_audio_play_time = 0;         // 当前音频播放时间（毫秒）
+static float s_audio_playback_rate = 1.0; // 音频播放速率
 
 void packet_queue_init(packet_queue_t *q)
 {
@@ -328,45 +338,71 @@ void sdl_audio_callback(void *userdata, uint8_t *stream, int len)
         {   // audio_buf缓冲区中数据已全部取出，则从队列中获取更多数据
             
             //std::cout<<p_packet.size<<std::endl;
-            // 1. 从队列中读出一包音频数据
-            if (packet_queue_pop(&s_audio_pkt_queue, p_packet_ptr, 1) <= 0)
+
+            while (1)
             {
-                if (s_input_finished)
+                // 1. 从队列中读出一包音频数据
+                if (packet_queue_pop(&s_audio_pkt_queue, p_packet_ptr, 1) <= 0)
                 {
-                    // av_packet_unref(p_packet);
-                    // p_packet = NULL;    // flush decoder
-                    printf("Flushing decoder...\n");
+                    if (s_input_finished)
+                    {
+                        // av_packet_unref(p_packet);
+                        // p_packet = NULL;    // flush decoder
+                        printf("Flushing decoder...\n");
+                    }
+                    else
+                    {
+                        printf("1\n");
+                        // av_packet_unref(p_packet);
+                        return;
+                    }
+                }
+                // 检查包是否在播放时间之前，如果是，则将其跳过
+                s_audio_play_time=p_packet_ptr->mypkt.pts * av_q2d(p_codec_ctx->time_base) * 1000.0;
+                auto end = std::chrono::high_resolution_clock::now();
+                auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+                time_shaft+=elapsed.count()-last_time;
+                last_time=elapsed.count();
+
+                std::cout<<time_shaft<<" - "<<s_audio_play_time<<" = "<<time_shaft-s_audio_play_time<<std::endl;
+                if (s_audio_play_time <= time_shaft)
+                {
+                    continue;
                 }
                 else
                 {
-                    printf("1\n");
-                    // av_packet_unref(p_packet);
-                    return;
+                    break;
                 }
             }
-
-            // 2. 解码音频包
-            get_size = audio_decode_frame(p_codec_ctx, std::move(p_packet_ptr), s_audio_buf, sizeof(s_audio_buf));
-            if (get_size < 0)
-            {
-                // 出错输出一段静音
-                s_audio_len = 1024; // arbitrary?
-                memset(s_audio_buf, 0, s_audio_len);
-                //av_packet_unref(p_packet);
-                printf("出错输出一段静音\n");
-            }
-            else if (get_size == 0) // 解码缓冲区被冲洗，整个解码过程完毕
-            {
-                printf("2\n");
-                s_decode_finished = true;
-            }
-            else
-            {
-                //printf("3\n");
-                s_audio_len = get_size;
-                //av_packet_unref(p_packet);
-            }
+            // 解码并根据播放速率处理
+            s_audio_len = audio_decode_frame(p_codec_ctx, std::move(p_packet_ptr), s_audio_buf, sizeof(s_audio_buf)) / s_audio_playback_rate;
             s_tx_idx = 0;
+            
+            
+
+            // // 2. 解码音频包
+            // get_size = audio_decode_frame(p_codec_ctx, std::move(p_packet_ptr), s_audio_buf, sizeof(s_audio_buf));
+            // if (get_size < 0)
+            // {
+            //     // 出错输出一段静音
+            //     s_audio_len = 1024; // arbitrary?
+            //     memset(s_audio_buf, 0, s_audio_len);
+            //     //av_packet_unref(p_packet);
+            //     printf("出错输出一段静音\n");
+            // }
+            // else if (get_size == 0) // 解码缓冲区被冲洗，整个解码过程完毕
+            // {
+            //     printf("2\n");
+            //     s_decode_finished = true;
+            // }
+            // else
+            // {
+            //     //printf("3\n");
+            //     s_audio_len = get_size;
+            //     //av_packet_unref(p_packet);
+            // }
+            // s_tx_idx = 0;
 
             // if (p_packet->data != NULL)
             // {
@@ -385,6 +421,12 @@ void sdl_audio_callback(void *userdata, uint8_t *stream, int len)
         len -= copy_len;
         stream += copy_len;
         s_tx_idx += copy_len;
+
+        //SDL_Delay(copy_len * 1000 / p_codec_ctx->channels / av_get_bytes_per_sample(s_audio_param_tgt.fmt) / s_audio_param_tgt.freq);
+    }
+    if (s_audio_pkt_queue.size == 0 && s_input_finished)
+    {
+        s_decode_finished = true;
     }
 }
 int myAVPacket::num=0;
@@ -549,6 +591,7 @@ int main(int argc, char *argv[])
     //     打开音频设备后默认未启动回调处理，通过调用SDL_PauseAudio(0)来启动回调处理。
     //     这样就可以在打开音频设备后先为回调函数安全初始化数据，一切就绪后再启动音频回调。
     //     在暂停期间，会将静音值往音频设备写。
+    start = std::chrono::high_resolution_clock::now();
     SDL_PauseAudio(0);
 
     // A4. 从视频文件中读取一个packet，此处仅处理音频packet
@@ -577,7 +620,8 @@ int main(int argc, char *argv[])
     // A5. 等待解码结束
     while (!s_decode_finished)
     {
-        SDL_Delay(1000);
+        SDL_Delay(3000);
+        time_shaft+=5000;
     }
     SDL_Delay(1000);
 

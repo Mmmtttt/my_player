@@ -11,7 +11,7 @@ extern packetQueue audio_packet_queue;
 
 class Decoder {
 public:
-    Decoder(AVFormatContext* p_fmt_ctx,int idx,int frame_rate);
+    Decoder(AVFormatContext* p_fmt_ctx,int idx);
     ~Decoder();
 
      
@@ -49,15 +49,15 @@ class videoDecoder:public Decoder{
 
 class audioDecoder:public Decoder{
     public:
-        audioDecoder(AVFormatContext* p_fmt_ctx,int _idx,int frame_rate);
+        audioDecoder(AVFormatContext* p_fmt_ctx,int _idx);
         ~audioDecoder();
 
-        int decode_One_frame();
-        int present_One_frame();
-        static void sdl_audio_callback(void *userdata, uint8_t *stream, int len);
+        // int decode_One_frame();
+        // int present_One_frame();
+        // static void sdl_audio_callback(void *userdata, uint8_t *stream, int len);
 
-        std::unique_ptr<audioSdlRenderer> renderer;
-        std::shared_ptr<audioFrame> frame;
+        // std::unique_ptr<audioSdlRenderer> renderer;
+        // std::shared_ptr<audioFrame> frame;
         //SwrContext *swr_ctx;
 };
 

@@ -65,7 +65,7 @@ Video::Video(const std::string& filename):filename(filename)
         avformat_close_input(&p_fmt_ctx);
         throw std::runtime_error("create v_decoder failed\n");
     } 
-    try{a_decoder=std::make_shared<audioDecoder>(p_fmt_ctx, a_idx,frame_rate);}
+    try{a_decoder=std::make_shared<audioDecoder>(p_fmt_ctx, a_idx);}
     catch(const std::exception& e)
     {
         std::cout<<e.what()<<std::endl;
@@ -113,6 +113,9 @@ void Video::play(){
                 auto end = std::chrono::high_resolution_clock::now();
                 auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
                 last_time=elapsed.count();
+                
+                if(s_playing_pause)SDL_PauseAudio(1);
+                else SDL_PauseAudio(0);
                 printf("player %s\n", s_playing_pause ? "pause" : "continue");
             }
             else if (sdl_event.key.keysym.sym == SDLK_LEFT)

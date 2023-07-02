@@ -10,6 +10,7 @@ set(SOURCES
     src/renderer.cpp
     src/video.cpp
     src/packetQueue.cpp
+    src/audio.cpp
     # 添加其他源文件
 )
 

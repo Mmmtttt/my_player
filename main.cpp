@@ -19,6 +19,7 @@ int main(int argc, char* argv[])
     Video video(argv[1]);
     
     start = std::chrono::high_resolution_clock::now();
+    SDL_PauseAudio(0);
     video.play();
 
     return 0;

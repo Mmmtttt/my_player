@@ -36,6 +36,7 @@ class packetQueue{
         int64_t curr_decode_pos=0;
 };
 
-
+extern packetQueue video_packet_queue;
+extern packetQueue audio_packet_queue;
 
 #endif

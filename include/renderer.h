@@ -28,7 +28,7 @@ public:
     static int sdl_thread_handle_refreshing(void *opaque);
 
     static std::shared_ptr<videoFrame> frame;
-    
+
 private:    SDL_Window*         screen; 
         SDL_Renderer*       sdl_renderer;
         SDL_Texture*        sdl_texture;
@@ -40,26 +40,26 @@ private:    SDL_Window*         screen;
 
 
 
-class audioSdlRenderer:public SdlRenderer{
-    public:
-        audioSdlRenderer(AVCodecContext* p_codec_ctx,int frame_rate);
-        ~audioSdlRenderer();
+// class audioSdlRenderer:public SdlRenderer{
+//     public:
+//         audioSdlRenderer(AVCodecContext* p_codec_ctx,int frame_rate);
+//         ~audioSdlRenderer();
 
-        int renderFrame(AVCodecContext *p_codec_ctx);
+//         int renderFrame(AVCodecContext *p_codec_ctx);
 
-        //static void sdl_audio_callback(void *userdata, uint8_t *stream, int len);
-        std::shared_ptr<audioFrame> frame;
+//         //static void sdl_audio_callback(void *userdata, uint8_t *stream, int len);
+//         std::shared_ptr<audioFrame> frame;
     
-        SDL_AudioSpec       wanted_spec;
+//         SDL_AudioSpec       wanted_spec;
         
-        FF_AudioParams s_audio_param_tgt;
+//         FF_AudioParams s_audio_param_tgt;
 
-        SwrContext *swr_ctx;
+//         SwrContext *swr_ctx;
         
 
-        uint8_t *audio_buf;
-        int buf_size;
-};
+//         uint8_t *audio_buf;
+//         int buf_size;
+// };
 
 
 #endif

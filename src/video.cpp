@@ -110,8 +110,31 @@ void Video::play(){
             {
                 // 用户按空格键，暂停/继续状态切换
                 s_playing_pause = !s_playing_pause;
+                auto end = std::chrono::high_resolution_clock::now();
+                auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+                last_time=elapsed.count();
                 printf("player %s\n", s_playing_pause ? "pause" : "continue");
             }
+            else if (sdl_event.key.keysym.sym == SDLK_LEFT)
+            {
+                if(time_shaft>5000)time_shaft-=5000;
+                else time_shaft=0;
+                avcodec_flush_buffers(v_decoder->p_codec_ctx);
+            }
+            else if (sdl_event.key.keysym.sym == SDLK_RIGHT)
+            {
+                time_shaft+=5000;
+                avcodec_flush_buffers(v_decoder->p_codec_ctx);
+            }
+            else if (sdl_event.key.keysym.sym == SDLK_UP)
+            {
+                speed+=0.25;
+            }
+            else if (sdl_event.key.keysym.sym == SDLK_DOWN)
+            {
+                if(speed>0.5)speed-=0.25;
+            }
+            
         }
         else if (sdl_event.type == SDL_QUIT)
         {

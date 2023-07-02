@@ -3,13 +3,13 @@
 #include <iostream>
 #include <libswscale/swscale.h>
 std::shared_ptr<audioDecoder> static_a_decoder;
-video_packetQueue video_packet_queue;
-video_packetQueue audio_packet_queue;
+packetQueue video_packet_queue;
+packetQueue audio_packet_queue;
 
-Decoder::Decoder(AVFormatContext* p_fmt_ctx,int _idx,int frame_rate):idx(_idx)
+Decoder::Decoder(AVFormatContext* _p_fmt_ctx,int _idx,int frame_rate):idx(_idx),p_fmt_ctx(_p_fmt_ctx)
 {
     // A5.1 获取解码器参数AVCodecParameters
-    AVCodecParameters *p_codec_par = p_fmt_ctx->streams[_idx]->codecpar;
+    AVCodecParameters *p_codec_par = _p_fmt_ctx->streams[_idx]->codecpar;
 
     // A5.2 获取解码器
     const AVCodec* p_codec = avcodec_find_decoder(p_codec_par->codec_id);
@@ -52,8 +52,43 @@ Decoder::~Decoder()
 
 void Decoder::get_Packet(){
     std::shared_ptr<myAVPacket> temp;
-    if(idx==0) {video_packet_queue.packet_queue_pop(temp,1);}//std::cout<<"get video pkt "<<temp->size<<std::endl;}
-    else {audio_packet_queue.packet_queue_pop(temp,1);}//std::cout<<"get audio pkt "<<temp->size<<std::endl;}
+    while(1){
+        if(idx==0) {video_packet_queue.packet_queue_pop(temp,1);}
+        // 检查包是否在播放时间之前，如果是，则将其跳过
+        // if(p_codec_ctx->time_base.num==0&&p_codec_ctx->time_base.den==1){
+        //     s_video_play_time=temp->mypkt.pts*1000;
+        // }
+        // else if(p_codec_ctx->time_base.num==0&&p_codec_ctx->time_base.den==2){
+        //     s_video_play_time=temp->mypkt.pts * av_q2d(p_codec_ctx->time_base);
+        // }
+        // else{
+            s_video_play_time=temp->mypkt.pts * p_fmt_ctx->streams[idx]->time_base.num * 1000 / p_fmt_ctx->streams[idx]->time_base.den;
+        // }
+        // std::cout<<p_codec_ctx->time_base.den<<" "<<p_codec_ctx->time_base.num<<std::endl;
+        // std::cout<<temp->mypkt.pts<<std::endl;
+        auto end = std::chrono::high_resolution_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+        time_shaft+=(elapsed.count()-last_time)*speed;//时间轴，是一次
+        last_time=elapsed.count();
+
+        std::cout<<time_shaft<<" - "<<s_video_play_time<<" = "<<time_shaft-s_video_play_time<<std::endl;
+        int64_t diff=time_shaft-s_video_play_time;
+        if (300 <= diff)
+        {
+            //avcodec_flush_buffers(p_codec_ctx);
+            continue;
+        }
+        else if(-300>=diff)
+        {
+            avcodec_flush_buffers(p_codec_ctx);
+            video_packet_queue.curr_decode_pos=video_packet_queue.curr_decode_pos-2;
+            continue;
+        }
+        else{break;}
+    }
+    
+
     int ret = avcodec_send_packet(p_codec_ctx, &temp->mypkt);
     if (ret != 0)
     {
@@ -64,13 +99,13 @@ void Decoder::get_Packet(){
 void Decoder::push_All_Packets(AVFormatContext*p_fmt_ctx){
     int ret=0;
     while(ret==0){
-        std::unique_ptr<myAVPacket> temp(new myAVPacket);
+        std::shared_ptr<myAVPacket> temp(new myAVPacket);
         ret=av_read_frame(p_fmt_ctx, &temp->mypkt);
         temp->size=temp->mypkt.size;
         if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO)
-            video_packet_queue.packet_queue_push(std::move(temp));
+            video_packet_queue.packet_queue_push(temp);
         else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
-            audio_packet_queue.packet_queue_push(std::move(temp));
+            audio_packet_queue.packet_queue_push(temp);
         }
     }
 }

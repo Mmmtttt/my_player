@@ -6,6 +6,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <iostream>
+#include <deque>
 class myAVPacket{
     public:
         myAVPacket(){}
@@ -16,22 +17,23 @@ class myAVPacket{
         }
         AVPacket mypkt;
         int size;
-        static int64_t num;
+        static int64_t num;//从文件中取出的packet的序号，无论什么类型
 };
 
-class video_packetQueue{
+class packetQueue{
     public:
-        video_packetQueue(){std::cout<<"packet queue create"<<std::endl;}
-        ~video_packetQueue(){pkts_ptr.clear();std::cout<<"packet queue destoryed"<<std::endl;}
+        packetQueue(){std::cout<<"packet queue create"<<std::endl;}
+        ~packetQueue(){pkts_ptr.clear();std::cout<<"packet queue destoryed"<<std::endl;}
 
 
         int packet_queue_push(std::shared_ptr<myAVPacket> pkt_ptr);
         int packet_queue_pop(std::shared_ptr<myAVPacket>& pkt_ptr, int block);
     //private:
-        std::list<std::shared_ptr<myAVPacket>> pkts_ptr;
+        std::deque<std::shared_ptr<myAVPacket>> pkts_ptr;
         int64_t size=0;         // 队列中AVPacket总的大小(字节数)
         std::mutex Mutex;
         std::condition_variable cond;
+        int64_t curr_decode_pos=0;
 };
 
 

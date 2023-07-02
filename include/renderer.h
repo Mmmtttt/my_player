@@ -27,14 +27,13 @@ public:
 
     static int sdl_thread_handle_refreshing(void *opaque);
 
-
-private:
-    std::shared_ptr<videoFrame> frame;
-    SDL_Window*         screen; 
-    SDL_Renderer*       sdl_renderer;
-    SDL_Texture*        sdl_texture;
-    SDL_Rect            sdl_rect;
-    SDL_Thread*         sdl_thread;
+    static std::shared_ptr<videoFrame> frame;
+    
+private:    SDL_Window*         screen; 
+        SDL_Renderer*       sdl_renderer;
+        SDL_Texture*        sdl_texture;
+        SDL_Rect            sdl_rect;
+        SDL_Thread*         sdl_thread;
     
 };
 

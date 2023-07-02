@@ -17,6 +17,7 @@ public:
     
 
     AVFormatContext* p_fmt_ctx = NULL;
+    //AVCodecContext* p_codec_ctx = NULL;
 
 
 

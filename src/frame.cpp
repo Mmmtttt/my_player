@@ -2,6 +2,7 @@
 
 videoFrame::videoFrame(AVCodecContext* p_codec_ctx)
 {
+    timebase=p_codec_ctx->time_base;
     // A6. 分配AVFrame
     // A6.1 分配AVFrame结构，注意并不分配data buffer(即AVFrame.*data[])
     p_frm_raw = av_frame_alloc();

@@ -2,8 +2,11 @@
 #include "decoder.h"
 #include <iostream>
 
-videoSdlRenderer::videoSdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<videoFrame> _frame,int frame_rate):frame(_frame)
+std::shared_ptr<videoFrame> videoSdlRenderer::frame=NULL;
+
+videoSdlRenderer::videoSdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<videoFrame> _frame,int frame_rate)
 {
+    frame=_frame;
     // B1. 初始化SDL子系统：缺省(事件处理、文件IO、线程)、视频、音频、定时器
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO))
     {  

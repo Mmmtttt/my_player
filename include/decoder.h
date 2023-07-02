@@ -6,8 +6,8 @@
 #include "packetQueue.h"
 #include <thread>
 
-extern    video_packetQueue video_packet_queue;
-extern    video_packetQueue audio_packet_queue;
+extern packetQueue video_packet_queue;
+extern packetQueue audio_packet_queue;
 
 class Decoder {
 public:
@@ -17,9 +17,10 @@ public:
      
 
     void push_All_Packets(AVFormatContext*);
-
+    AVFormatContext* p_fmt_ctx;
 
     AVCodecContext* p_codec_ctx = NULL; 
+
     
 
     int idx=-1;

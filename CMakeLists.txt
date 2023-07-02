@@ -3,13 +3,13 @@ project(MyPlayer)
 
 # 设置源代码目录
 set(SOURCES
-    #main.cpp
-    src/audio.cpp
-    #src/decoder.cpp
-    #src/frame.cpp
-    #src/renderer.cpp
-    #src/video.cpp
-    #src/packetQueue.cpp
+    main.cpp
+    #src/audio.cpp
+    src/decoder.cpp
+    src/frame.cpp
+    src/renderer.cpp
+    src/video.cpp
+    src/packetQueue.cpp
     # 添加其他源文件
 )
 

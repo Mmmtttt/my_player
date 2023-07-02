@@ -38,6 +38,7 @@ public:
 
     AVFrame* p_frm_raw = NULL; 
     AVFrame* p_frm_yuv = NULL; 
+    AVRational timebase;
 private:     
     int  buf_size;
     uint8_t* buffer = NULL;

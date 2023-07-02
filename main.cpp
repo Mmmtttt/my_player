@@ -1,6 +1,10 @@
 #include "video.h"
 
-
+std::chrono::_V2::system_clock::time_point start;
+int64_t time_shaft = 0;
+int64_t last_time = 0;
+double speed = 2.0;
+bool s_playing_pause = false;
 
 int main(int argc, char* argv[])
 {

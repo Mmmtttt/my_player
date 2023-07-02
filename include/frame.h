@@ -17,8 +17,9 @@ extern "C"{
 #include <iostream>
 #include <memory>
 
+#include "control.h"
+
 extern bool s_playing_exit ;
-extern bool s_playing_pause ;
 typedef struct AudioParams {
     int freq;
     int channels;

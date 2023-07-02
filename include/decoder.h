@@ -6,8 +6,8 @@
 #include "packetQueue.h"
 #include <thread>
 
-extern    packetQueue video_packet_queue;
-extern    packetQueue audio_packet_queue;
+extern    video_packetQueue video_packet_queue;
+extern    video_packetQueue audio_packet_queue;
 
 class Decoder {
 public:

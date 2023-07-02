@@ -1,6 +1,6 @@
 #include "packetQueue.h"
 
-int packetQueue::packet_queue_push(std::unique_ptr<myAVPacket> pkt_ptr)
+int video_packetQueue::packet_queue_push(std::shared_ptr<myAVPacket> pkt_ptr)
 {
     //SDL_LockMutex(q->mutex);
     std::unique_lock<std::mutex> lock(Mutex);
@@ -11,7 +11,7 @@ int packetQueue::packet_queue_push(std::unique_ptr<myAVPacket> pkt_ptr)
     return 0;
 }
 
-int packetQueue::packet_queue_pop(std::unique_ptr<myAVPacket>& pkt_ptr, int block)
+int video_packetQueue::packet_queue_pop(std::shared_ptr<myAVPacket>& pkt_ptr, int block)
 {
     int ret;
 

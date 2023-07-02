@@ -3,8 +3,8 @@
 #include <iostream>
 #include <libswscale/swscale.h>
 std::shared_ptr<audioDecoder> static_a_decoder;
-packetQueue video_packet_queue;
-packetQueue audio_packet_queue;
+video_packetQueue video_packet_queue;
+video_packetQueue audio_packet_queue;
 
 Decoder::Decoder(AVFormatContext* p_fmt_ctx,int _idx,int frame_rate):idx(_idx)
 {
@@ -51,7 +51,7 @@ Decoder::~Decoder()
 
 
 void Decoder::get_Packet(){
-    std::unique_ptr<myAVPacket> temp;
+    std::shared_ptr<myAVPacket> temp;
     if(idx==0) {video_packet_queue.packet_queue_pop(temp,1);}//std::cout<<"get video pkt "<<temp->size<<std::endl;}
     else {audio_packet_queue.packet_queue_pop(temp,1);}//std::cout<<"get audio pkt "<<temp->size<<std::endl;}
     int ret = avcodec_send_packet(p_codec_ctx, &temp->mypkt);

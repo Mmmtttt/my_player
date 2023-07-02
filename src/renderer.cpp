@@ -99,7 +99,7 @@ int videoSdlRenderer::sdl_thread_handle_refreshing(void *opaque)
             sdl_event.type = SDL_USEREVENT_REFRESH;
             SDL_PushEvent(&sdl_event);
         }
-        SDL_Delay(interval);
+        SDL_Delay(interval/speed);
     }
 
     return 0;

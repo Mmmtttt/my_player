@@ -9,27 +9,27 @@
 class myAVPacket{
     public:
         myAVPacket(){}
-        myAVPacket(AVPacket pkt):mypkt(pkt),size(pkt.size){}
+        myAVPacket(AVPacket pkt):mypkt(pkt),size(pkt.size){num++;}
         ~myAVPacket(){
             //std::cout<<"destory num "<<num<<std::endl;
             av_packet_unref(&mypkt);
         }
         AVPacket mypkt;
         int size;
-        //static int num;
+        static int64_t num;
 };
 
-class packetQueue{
+class video_packetQueue{
     public:
-        packetQueue(){std::cout<<"packet queue create"<<std::endl;}
-        ~packetQueue(){pkts_ptr.clear();std::cout<<"packet queue destoryed"<<std::endl;}
+        video_packetQueue(){std::cout<<"packet queue create"<<std::endl;}
+        ~video_packetQueue(){pkts_ptr.clear();std::cout<<"packet queue destoryed"<<std::endl;}
 
 
-        int packet_queue_push(std::unique_ptr<myAVPacket> pkt_ptr);
-        int packet_queue_pop(std::unique_ptr<myAVPacket>& pkt_ptr, int block);
+        int packet_queue_push(std::shared_ptr<myAVPacket> pkt_ptr);
+        int packet_queue_pop(std::shared_ptr<myAVPacket>& pkt_ptr, int block);
     //private:
-        std::list<std::unique_ptr<myAVPacket>> pkts_ptr;
-        long long size=0;         // 队列中AVPacket总的大小(字节数)
+        std::list<std::shared_ptr<myAVPacket>> pkts_ptr;
+        int64_t size=0;         // 队列中AVPacket总的大小(字节数)
         std::mutex Mutex;
         std::condition_variable cond;
 };

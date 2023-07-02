@@ -3,7 +3,7 @@
 #include <libavformat/avformat.h>
 
 bool s_playing_exit =false;
-bool s_playing_pause =false;
+
 
 Video::Video(const std::string& filename):filename(filename)
 {
@@ -89,10 +89,7 @@ Video::~Video()
 
 void Video::play(){
     v_decoder->push_All_Packets(p_fmt_ctx);
-    //std::cout<<"done1"<<std::endl;
-    a_decoder->push_All_Packets(p_fmt_ctx);
-    //std::cout<<"done2"<<std::endl;
-    a_decoder->present_One_frame();
+
     while(1){
         // B6. 等待刷新事件
         SDL_WaitEvent(&sdl_event);
@@ -105,11 +102,6 @@ void Video::play(){
                 std::cout<<e.what()<<std::endl;
                 return;
             } 
-            try{a_decoder->present_One_frame();}
-            catch(const std::exception&e){
-                std::cout<<e.what()<<std::endl;
-                return;
-            }
             if(ret==-1) continue;
         }
         else if (sdl_event.type == SDL_KEYDOWN)

@@ -3,7 +3,7 @@
 #include "audio.h"
 #include <iostream>
 #include <libswscale/swscale.h>
-std::shared_ptr<audioDecoder> static_a_decoder;
+// std::shared_ptr<audioDecoder> static_a_decoder;
 packetQueue video_packet_queue;
 packetQueue audio_packet_queue;
 
@@ -70,17 +70,17 @@ void Decoder::get_Packet(){
         auto end = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-        time_shaft+=(elapsed.count()-last_time)*speed;//时间轴，是一次
-        last_time=elapsed.count();
+        //time_shaft+=(elapsed.count()-last_time)*speed;//时间轴，是一次
+        v_last_time=elapsed.count();
 
-        std::cout<<time_shaft<<" - "<<s_video_play_time<<" = "<<time_shaft-s_video_play_time<<std::endl;
+        std::cout<<"video: "<<time_shaft<<" - "<<s_video_play_time<<" = "<<time_shaft-s_video_play_time<<std::endl;
         int64_t diff=time_shaft-s_video_play_time;
-        if (300 <= diff)
+        if (3000 <= diff)
         {
             //avcodec_flush_buffers(p_codec_ctx);
             continue;
         }
-        else if(-300>=diff)
+        else if(-3000>=diff)
         {
             avcodec_flush_buffers(p_codec_ctx);
             video_packet_queue.curr_decode_pos=video_packet_queue.curr_decode_pos-2;
@@ -281,7 +281,10 @@ audioDecoder::audioDecoder(AVFormatContext* _p_fmt_ctx,int _idx):Decoder(_p_fmt_
         throw std::runtime_error("avcodec_open2() failed ");
     }
 
-
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO))
+    {  
+        throw std::runtime_error("SDL_Init() failed"); 
+    }
 
 
     // B2. 打开音频设备并创建音频处理线程
@@ -324,7 +327,7 @@ audioDecoder::audioDecoder(AVFormatContext* _p_fmt_ctx,int _idx):Decoder(_p_fmt_
 }
 
 audioDecoder::~audioDecoder(){
-
+    SDL_CloseAudio();
     std::cout<<"aideoDecoder destoryed"<<std::endl;
 }
 

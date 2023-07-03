@@ -6,8 +6,26 @@
     int                 res = 0;
 SDL_AudioSpec       wanted_spec;
 
+uint8_t *s_resample_buf = NULL;  // 重采样输出缓冲区
+int s_resample_buf_len = 0;      // 重采样输出缓冲区长度
+
+bool s_input_finished = false;   // 文件读取完毕
+bool s_decode_finished = false;  // 解码完毕
+
+// 新增全局变量以处理播放速率和播放位置
+//static int s_audio_play_time = 0;         // 当前音频播放时间（毫秒）（解了当前包之后，应该处于的时间）
+float s_audio_playback_rate = 1.0; // 音频播放速率
+
+ FF_AudioParams s_audio_param_src;
+ FF_AudioParams s_audio_param_tgt;
+
+
+struct SwrContext *s_audio_swr_ctx;
+
 int audio_decode_frame(AVCodecContext *p_codec_ctx, std::shared_ptr<myAVPacket> p_packet_ptr, uint8_t *audio_buf, int buf_size)
 {
+    if(s_playing_exit)exit(0);
+
     AVFrame *p_frame = av_frame_alloc();
     
     int frm_size = 0;
@@ -17,7 +35,6 @@ int audio_decode_frame(AVCodecContext *p_codec_ctx, std::shared_ptr<myAVPacket> 
     uint8_t *p_cp_buf = NULL;
     int cp_len = 0;
     bool need_new = false;
-
     res = 0;
     while (1)
     {
@@ -151,10 +168,10 @@ int audio_decode_frame(AVCodecContext *p_codec_ctx, std::shared_ptr<myAVPacket> 
             
             // 将音频帧拷贝到函数输出参数audio_buf
             memcpy(audio_buf, p_cp_buf, cp_len);
-
             res = cp_len;
             goto exit;
         }
+        //std::cout<<"333"<<std::endl;
 
         // 2 向解码器喂数据，每次喂一个packet
         if (need_new)
@@ -180,6 +197,8 @@ exit:
 
 void sdl_audio_callback(void *userdata, uint8_t *stream, int len)
 {
+    if(s_playing_exit)exit(0);
+
     AVCodecContext *p_codec_ctx = (AVCodecContext *)userdata;
     int copy_len;           // 
     int get_size;           // 获取到解码后的音频数据大小
@@ -233,10 +252,10 @@ void sdl_audio_callback(void *userdata, uint8_t *stream, int len)
                 auto end = std::chrono::high_resolution_clock::now();
                 auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-                time_shaft+=(elapsed.count()-last_time)*speed;//时间轴，是一次
-                last_time=elapsed.count();
+                time_shaft+=(elapsed.count()-a_last_time)*speed;//时间轴，是一次
+                a_last_time=elapsed.count();
 
-                std::cout<<s_audio_play_time<<" - "<<time_shaft<<" = "<<time_shaft-s_audio_play_time<<std::endl;
+                std::cout<<"audio: "<<time_shaft<<" - "<<s_video_play_time<<" = "<<time_shaft-s_audio_play_time<<std::endl;
                 int64_t diff=time_shaft-s_audio_play_time;
                 if (50 <= diff)
                 {
@@ -252,7 +271,6 @@ void sdl_audio_callback(void *userdata, uint8_t *stream, int len)
             // 解码并根据播放速率处理
             s_audio_len = audio_decode_frame(p_codec_ctx, p_packet_ptr, s_audio_buf, sizeof(s_audio_buf)) / s_audio_playback_rate;
             s_tx_idx = 0;
-            
             
         }
 

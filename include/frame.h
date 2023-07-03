@@ -8,7 +8,7 @@
 
 #include "control.h"
 
-extern bool s_playing_exit ;
+
 typedef struct AudioParams {
     int freq;
     int channels;

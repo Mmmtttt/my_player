@@ -2,7 +2,7 @@
 #include <iostream>
 #include <libavformat/avformat.h>
 
-bool s_playing_exit =false;
+
 
 
 Video::Video(const std::string& filename):filename(filename)
@@ -65,14 +65,14 @@ Video::Video(const std::string& filename):filename(filename)
         avformat_close_input(&p_fmt_ctx);
         throw std::runtime_error("create v_decoder failed\n");
     } 
-    try{a_decoder=std::make_shared<audioDecoder>(p_fmt_ctx, a_idx);}
+    try{a_decoder=std::make_unique<audioDecoder>(p_fmt_ctx, a_idx);}
     catch(const std::exception& e)
     {
         std::cout<<e.what()<<std::endl;
         avformat_close_input(&p_fmt_ctx);
         throw std::runtime_error("create a_decoder failed\n");
     }
-    static_a_decoder=a_decoder;
+    // static_a_decoder=a_decoder;
     
 //std::cout<<"done2"<<std::endl;
     
@@ -89,7 +89,8 @@ Video::~Video()
 
 void Video::play(){
     v_decoder->push_All_Packets(p_fmt_ctx);
-
+    start = std::chrono::high_resolution_clock::now();
+    SDL_PauseAudio(0);
     while(1){
         // B6. 等待刷新事件
         SDL_WaitEvent(&sdl_event);
@@ -112,7 +113,8 @@ void Video::play(){
                 s_playing_pause = !s_playing_pause;
                 auto end = std::chrono::high_resolution_clock::now();
                 auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-                last_time=elapsed.count();
+                v_last_time=elapsed.count();
+                a_last_time=elapsed.count();
                 
                 if(s_playing_pause)SDL_PauseAudio(1);
                 else SDL_PauseAudio(0);
@@ -141,9 +143,11 @@ void Video::play(){
         }
         else if (sdl_event.type == SDL_QUIT)
         {
+            SDL_PauseAudio(1);
             // 用户按下关闭窗口按钮
             printf("SDL event QUIT\n");
             s_playing_exit = true;
+            SDL_Quit();
             break;
         }
         else

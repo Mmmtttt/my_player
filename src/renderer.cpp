@@ -63,7 +63,7 @@ videoSdlRenderer::videoSdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<v
     static int _frame_rate=frame_rate;
     
     // B5. 创建定时刷新事件线程，按照预设帧率产生刷新事件
-    sdl_thread = SDL_CreateThread(sdl_thread_handle_refreshing, NULL, (void *)&_frame_rate);
+    sdl_thread = SDL_CreateThread(sdl_thread_handle_refreshing, NULL, (void *)&videoDecoder::duration);
     if (sdl_thread == NULL)
     {  
         SDL_DestroyTexture(sdl_texture);
@@ -90,13 +90,14 @@ int videoSdlRenderer::sdl_thread_handle_refreshing(void *opaque)
 {
     SDL_Event sdl_event;
 
-    int frame_rate = *((int *)opaque);
-    int interval = (frame_rate > 0) ? 1000/frame_rate : 40;
+    
 
-    printf("frame rate %d FPS, refresh interval %d ms\n", frame_rate, interval);
 
     while (!s_playing_exit)
     {
+        int duration = *((int *)opaque);
+        int interval = (duration > 0) ? duration : 40;
+        //std::cout<<"interval : "<<interval<<std::endl; 
         if (!s_playing_pause)
         {
             sdl_event.type = SDL_USEREVENT_REFRESH;

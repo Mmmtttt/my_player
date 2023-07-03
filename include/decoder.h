@@ -28,7 +28,7 @@ public:
     
 
     
-    void get_Packet();
+    
 
     
 };
@@ -42,9 +42,13 @@ class videoDecoder:public Decoder{
         void sws_scaling();//图像缩放
         int decode_One_frame();
 
+        void get_Packet();
+
         std::unique_ptr<videoSdlRenderer> renderer;
         std::shared_ptr<videoFrame> frame;
         SwsContext* sws_ctx = NULL; 
+        double timebase_in_ms;
+        static int duration;  //当前帧的duration
 };
 
 class audioDecoder:public Decoder{
@@ -59,6 +63,7 @@ class audioDecoder:public Decoder{
         // std::unique_ptr<audioSdlRenderer> renderer;
         // std::shared_ptr<audioFrame> frame;
         //SwrContext *swr_ctx;
+        double timebase_in_ms;
 };
 
 extern std::shared_ptr<audioDecoder> static_a_decoder;

@@ -38,7 +38,8 @@ void sdl_audio_callback(void *userdata, uint8_t *stream, int len);
 extern    SDL_AudioSpec       wanted_spec;
     //SDL_AudioSpec       actual_spec;
 
-
+extern AVFormatContext* audio_p_fmt_ctx;
+extern int audio_idx;
 
 
 #endif // !AUDIO_H

@@ -92,6 +92,7 @@
     "avfilter.h": "c",
     "postprocess.h": "c",
     "condition_variable": "cpp",
-    "mutex": "cpp"
+    "mutex": "cpp",
+    "map": "cpp"
   }
 }

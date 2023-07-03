@@ -1,7 +1,10 @@
 #include "audio.h"
+ AVFormatContext* audio_p_fmt_ctx=NULL;
+ int audio_idx=-1;
+
 
     int                 i = 0;
-    int                 a_idx = -1;
+
     int                 ret = 0;
     int                 res = 0;
 SDL_AudioSpec       wanted_spec;
@@ -248,14 +251,14 @@ void sdl_audio_callback(void *userdata, uint8_t *stream, int len)
 
 
                 // 检查包是否在播放时间之前，如果是，则将其跳过
-                s_audio_play_time=p_packet_ptr->mypkt.pts * av_q2d(p_codec_ctx->time_base) * 1000.0;
+                s_audio_play_time=p_packet_ptr->mypkt.pts * audio_p_fmt_ctx->streams[audio_idx]->time_base.num * 1000 / audio_p_fmt_ctx->streams[audio_idx]->time_base.den;
                 auto end = std::chrono::high_resolution_clock::now();
                 auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-                time_shaft+=(elapsed.count()-a_last_time)*speed;//时间轴，是一次
+                time_shaft+=(elapsed.count()-std::max(a_last_time,v_last_time))*speed;//时间轴，是一次
                 a_last_time=elapsed.count();
 
-                std::cout<<"audio: "<<time_shaft<<" - "<<s_video_play_time<<" = "<<time_shaft-s_audio_play_time<<std::endl;
+                //std::cout<<"audio: "<<time_shaft<<" - "<<s_audio_play_time<<" = "<<time_shaft-s_audio_play_time<<std::endl;
                 int64_t diff=time_shaft-s_audio_play_time;
                 if (50 <= diff)
                 {

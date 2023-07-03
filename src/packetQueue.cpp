@@ -4,7 +4,7 @@ int packetQueue::packet_queue_push(std::shared_ptr<myAVPacket> pkt_ptr)
 {
     std::unique_lock<std::mutex> lock(Mutex);
 
-    size += pkt_ptr->size;
+    size += pkt_ptr->mypkt.size;
     pkts_ptr.push_back(pkt_ptr);
 
     cond.notify_one();

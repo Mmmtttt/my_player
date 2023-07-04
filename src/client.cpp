@@ -4,6 +4,7 @@
 #include <iostream>
 #include <functional>
 #include <thread>
+#include <vector>
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -56,8 +57,15 @@ int main(int argc, char* argv[]) {
     int v_idx;
     RECV(v_idx);
 
-    AVCodecParameters v_p_codec_par;
-    RECV(v_p_codec_par);
+    //AVCodecParameters v_p_codec_par;
+    std::vector<char> vbytes(sizeof(AVCodecParameters));
+    AVCodecParameters* v_p_codec_par = new AVCodecParameters();
+    //RECV(*vbytes.data());
+    recv(client_socket,vbytes.data(),sizeof(AVCodecParameters),0);
+    memcpy(v_p_codec_par, vbytes.data(), vbytes.size());
+    //RECV(v_p_codec_par->extradata_size);
+    v_p_codec_par->extradata=(uint8_t*)malloc(v_p_codec_par->extradata_size*sizeof(uint8_t));
+    recv(client_socket,(char *)v_p_codec_par->extradata,v_p_codec_par->extradata_size,0);
 
     double v_timebase_in_ms;
     RECV(v_timebase_in_ms);
@@ -67,8 +75,15 @@ int main(int argc, char* argv[]) {
     int a_idx;
     RECV(a_idx);
 
-    AVCodecParameters a_p_codec_par;
-    RECV(a_p_codec_par);
+    //AVCodecParameters a_p_codec_par;
+    std::vector<char> abytes(sizeof(AVCodecParameters));
+    AVCodecParameters* a_p_codec_par = new AVCodecParameters();
+    //RECV(*abytes.data());
+    recv(client_socket,abytes.data(),sizeof(AVCodecParameters),0);
+    memcpy(a_p_codec_par, abytes.data(), abytes.size());
+    //RECV(a_p_codec_par->extradata_size);
+    a_p_codec_par->extradata=(uint8_t*)malloc(a_p_codec_par->extradata_size*sizeof(uint8_t));
+    recv(client_socket,(char *)a_p_codec_par->extradata,a_p_codec_par->extradata_size,0);
     
     double a_timebase_in_ms;
     RECV(a_timebase_in_ms);
@@ -83,7 +98,7 @@ int main(int argc, char* argv[]) {
     int64_t aaa;
     RECV(aaa);
 
-    Video video(a_idx,&a_p_codec_par,a_timebase_in_ms,v_idx,&v_p_codec_par,v_timebase_in_ms);
+    Video video(v_idx,v_p_codec_par,v_timebase_in_ms,a_idx,a_p_codec_par,a_timebase_in_ms);
     video_packet_queue.initial(v_size);
     audio_packet_queue.initial(a_size);
     

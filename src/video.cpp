@@ -55,8 +55,8 @@ Video::Video(const std::string& filename):filename(filename)
         throw std::runtime_error("Cann't find a audio stream\n");
     }
 
-    AVCodecParameters *v_p_codec_par = p_fmt_ctx->streams[v_idx]->codecpar;
-    AVCodecParameters *a_p_codec_par = p_fmt_ctx->streams[a_idx]->codecpar;
+    v_p_codec_par = p_fmt_ctx->streams[v_idx]->codecpar;
+    a_p_codec_par = p_fmt_ctx->streams[a_idx]->codecpar;
 
     v_timebase_in_ms =av_q2d(p_fmt_ctx->streams[v_idx]->time_base) * 1000;
     a_timebase_in_ms =av_q2d(p_fmt_ctx->streams[a_idx]->time_base) * 1000;

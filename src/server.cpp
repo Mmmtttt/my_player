@@ -1,6 +1,7 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iostream>
+#include <vector>
 #include "video.h"
 
 
@@ -22,10 +23,7 @@ int64_t s_video_play_time = 0;
 
 int main(int argc, char* argv[]) {
 
-    if (argc < 2) {
-        std::cout << "Please provide a movie file" << std::endl;
-        return -1;
-    }
+    
 
 
 
@@ -76,19 +74,31 @@ int main(int argc, char* argv[]) {
 
     // ... 发送数据到客户端 ...
 
+    if (argc < 2) {
+        std::cout << "Please provide a movie file" << std::endl;
+        Video video("1.mp4");
+    }
     Video video(argv[1]);
     video.v_decoder->push_All_Packets(video.p_fmt_ctx);
 
     
-
+    std::cout<<"prepare ok"<<std::endl;
     // send(accept_socket, (const char *)&video.v_idx,sizeof(video.v_idx),0);
     // send(accept_socket, (const char *)video.a_p_codec_par, sizeof(*video.a_p_codec_par), 0);
     SEND(video.v_idx);
-    SEND(*video.v_p_codec_par);
+    std::vector<char> vbytes(sizeof(AVCodecParameters));
+    memcpy(vbytes.data(), video.v_p_codec_par, sizeof(AVCodecParameters));
+    send(accept_socket,vbytes.data(),vbytes.size(),0);
+    //SEND(video.v_p_codec_par->extradata_size);
+    send(accept_socket,(const char *)video.v_p_codec_par->extradata,video.v_p_codec_par->extradata_size,0);
     SEND(video.v_timebase_in_ms);
 
     SEND(video.a_idx);
-    SEND(*video.a_p_codec_par);
+    std::vector<char> abytes(sizeof(AVCodecParameters));
+    memcpy(abytes.data(), video.a_p_codec_par, sizeof(AVCodecParameters));
+    send(accept_socket,abytes.data(),abytes.size(),0);
+    //SEND(video.a_p_codec_par->extradata_size);
+    send(accept_socket,(const char *)video.a_p_codec_par->extradata,video.a_p_codec_par->extradata_size,0);
     SEND(video.a_timebase_in_ms);
 
     int64_t v_size=video_packet_queue.pkts_ptr.size(),a_size=audio_packet_queue.pkts_ptr.size();

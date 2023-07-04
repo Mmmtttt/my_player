@@ -31,7 +31,13 @@ class packetQueue{
         packetQueue(){std::cout<<"packet queue create"<<std::endl;}
         ~packetQueue(){pkts_ptr.clear();std::cout<<"packet queue destoryed"<<std::endl;}
 
-        void initial(int64_t size){pkts_ptr.resize(size);std::cout<<"packet queue resize "<<size<<std::endl;}
+        void initial(int64_t size){
+            for(int64_t i=0;i<size;i++){
+                std::shared_ptr<myAVPacket> temp=std::shared_ptr<myAVPacket>(new myAVPacket);
+                pkts_ptr.push_back(temp);
+            }
+            std::cout<<"packet queue resize "<<size<<std::endl;
+        }
         void insert(std::shared_ptr<myAVPacket> pkt_ptr);
 
         int packet_queue_push(std::shared_ptr<myAVPacket> pkt_ptr);

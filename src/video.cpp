@@ -28,14 +28,14 @@ Video::Video(const std::string& filename):filename(filename)
 
     // A3. 查找第一个视频流
     v_idx = -1;
-    for (i=0; i<p_fmt_ctx->nb_streams; i++)
+    for (int i=0; i<p_fmt_ctx->nb_streams; i++)
     {
         if (p_fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
         {
             v_idx = i;
             printf("Find a video stream, index %d\n", v_idx);
-            frame_rate = p_fmt_ctx->streams[i]->avg_frame_rate.num /
-                         p_fmt_ctx->streams[i]->avg_frame_rate.den;
+            // frame_rate = p_fmt_ctx->streams[i]->avg_frame_rate.num /
+            //              p_fmt_ctx->streams[i]->avg_frame_rate.den;
             
         }
         else if(p_fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
@@ -63,7 +63,7 @@ Video::Video(const std::string& filename):filename(filename)
 
 
 
-    try{v_decoder=std::make_unique<videoDecoder>(v_p_codec_par, v_idx ,frame_rate,v_timebase_in_ms);}
+    try{v_decoder=std::make_unique<videoDecoder>(v_p_codec_par, v_idx ,v_timebase_in_ms);}
     catch(const std::exception& e)
     {
         std::cout<<e.what()<<std::endl;
@@ -91,9 +91,37 @@ Video::~Video()
 }
 
 
+Video::Video(int _v_idx,AVCodecParameters *_v_p_codec_par,double _v_timebase_in_ms,int _a_idx,AVCodecParameters *_a_p_codec_par,double _a_timebase_in_ms){
+    v_p_codec_par = _v_p_codec_par;
+    a_p_codec_par = _a_p_codec_par;
+
+    v_timebase_in_ms =_v_timebase_in_ms;
+    a_timebase_in_ms =_a_timebase_in_ms;
+
+    v_idx=_v_idx;
+    a_idx=_a_idx;
+
+
+    try{v_decoder=std::make_unique<videoDecoder>(v_p_codec_par, v_idx ,v_timebase_in_ms);}
+    catch(const std::exception& e)
+    {
+        std::cout<<e.what()<<std::endl;
+        avformat_close_input(&p_fmt_ctx);
+        throw std::runtime_error("create v_decoder failed\n");
+    } 
+    try{a_decoder=std::make_unique<audioDecoder>(a_p_codec_par, a_idx,a_timebase_in_ms);}
+    catch(const std::exception& e)
+    {
+        std::cout<<e.what()<<std::endl;
+        avformat_close_input(&p_fmt_ctx);
+        throw std::runtime_error("create a_decoder failed\n");
+    }
+}
+
+
 
 void Video::play(){
-    v_decoder->push_All_Packets(p_fmt_ctx);
+    // v_decoder->push_All_Packets(p_fmt_ctx);
     start = std::chrono::high_resolution_clock::now();
     SDL_PauseAudio(0);
     while(1){

@@ -11,6 +11,8 @@ public:
     Video(const std::string& filename);
     ~Video();
 
+    Video(int a_idx,AVCodecParameters *v_p_codec_par,double v_timebase_in_ms,int v_idx,AVCodecParameters *a_p_codec_par,double a_timebase_in_ms);
+
 
     void play();
     void show_IFO(){av_dump_format(p_fmt_ctx, 0, filename.c_str(), 0);};
@@ -25,24 +27,22 @@ public:
     double a_timebase_in_ms;
 
 
-    int width;
-    int height;
-    int i;
+    // int width;
+    // int height;
+    // int i;
     int v_idx;
     int a_idx;
-    int frame_rate;
+    // int frame_rate;
 
 
 
-private:
+
     std::string filename;
 
     std::unique_ptr<videoDecoder> v_decoder;
     std::unique_ptr<audioDecoder> a_decoder;
 
     SDL_Event sdl_event;
-
-    void read_One_frame_packet();
 
 };
 

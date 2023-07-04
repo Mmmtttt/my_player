@@ -20,7 +20,7 @@ class SdlRenderer{
 
 class videoSdlRenderer :public SdlRenderer{
 public:
-    videoSdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<videoFrame> frame,int frame_rate);
+    videoSdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<videoFrame> frame);
     ~videoSdlRenderer();
 
     void renderFrame();

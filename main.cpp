@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
 
     Video video(argv[1]);
     
-    
+    video.v_decoder->push_All_Packets(video.p_fmt_ctx);
     video.play();
     SDL_Delay(10000);
 

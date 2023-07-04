@@ -11,8 +11,8 @@
 #include <map>
 class myAVPacket{
     public:
-        myAVPacket(){is_exist=false;}
-        myAVPacket(AVPacket pkt):mypkt(pkt),size(pkt.size){num++;is_exist=true;}
+        myAVPacket(){}
+        myAVPacket(AVPacket pkt):mypkt(pkt),size(pkt.size){num++;}
         ~myAVPacket(){
             //std::cout<<"destory num "<<num<<std::endl;
             av_packet_unref(&mypkt);
@@ -21,7 +21,8 @@ class myAVPacket{
         AVPacket mypkt;
         int size;
         static int64_t num;//从文件中取出的packet的序号，无论什么类型
-        bool is_exist=false;
+        bool is_recived=false;
+        bool is_sended=false;
 };
 
 class packetQueue{
@@ -29,6 +30,12 @@ class packetQueue{
         packetQueue(){std::cout<<"packet queue create"<<std::endl;}
         ~packetQueue(){pkts_ptr.clear();std::cout<<"packet queue destoryed"<<std::endl;}
 
+        void initial(int64_t size){pkts_ptr.resize(size);std::cout<<"packet queue resize "<<size<<std::endl;}
+        void insert(std::shared_ptr<myAVPacket> pkt_ptr){
+            pkts_ptr[pkt_ptr->num-1]=pkt_ptr;
+            size+=pkt_ptr->mypkt.size;
+            pkt_ptr->is_recived=true;
+        }
 
         int packet_queue_push(std::shared_ptr<myAVPacket> pkt_ptr);
         int packet_queue_pop(std::shared_ptr<myAVPacket>& pkt_ptr, int block);

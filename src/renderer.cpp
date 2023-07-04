@@ -4,7 +4,7 @@
 
 std::shared_ptr<videoFrame> videoSdlRenderer::frame=NULL;
 
-videoSdlRenderer::videoSdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<videoFrame> _frame,int frame_rate)
+videoSdlRenderer::videoSdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<videoFrame> _frame)
 {
     frame=_frame;
     // B1. 初始化SDL子系统：缺省(事件处理、文件IO、线程)、视频、音频、定时器
@@ -59,8 +59,6 @@ videoSdlRenderer::videoSdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<v
     sdl_rect.w = p_codec_ctx->width;
     sdl_rect.h = p_codec_ctx->height;
 
-
-    static int _frame_rate=frame_rate;
     
     // B5. 创建定时刷新事件线程，按照预设帧率产生刷新事件
     sdl_thread = SDL_CreateThread(sdl_thread_handle_refreshing, NULL, (void *)&videoDecoder::duration);
@@ -89,8 +87,6 @@ videoSdlRenderer::~videoSdlRenderer()
 int videoSdlRenderer::sdl_thread_handle_refreshing(void *opaque)
 {
     SDL_Event sdl_event;
-
-    
 
 
     while (!s_playing_exit)

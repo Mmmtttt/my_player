@@ -34,7 +34,7 @@ public:
 
 class videoDecoder:public Decoder{
     public:
-        videoDecoder(AVCodecParameters *_p_codec_par,int _idx,int frame_rate,double timebase_in_ms);
+        videoDecoder(AVCodecParameters *_p_codec_par,int _idx,double timebase_in_ms);
         ~videoDecoder();
 
         int present_One_frame();

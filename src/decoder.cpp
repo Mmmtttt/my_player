@@ -122,7 +122,7 @@ void Decoder::push_All_Packets(AVFormatContext*p_fmt_ctx){
 
 
 
-videoDecoder::videoDecoder(AVCodecParameters *_p_codec_par,int _idx,int frame_rate,double _timebase_in_ms):Decoder(_p_codec_par,_idx,_timebase_in_ms){
+videoDecoder::videoDecoder(AVCodecParameters *_p_codec_par,int _idx,double _timebase_in_ms):Decoder(_p_codec_par,_idx,_timebase_in_ms){
     
 
     try{frame=std::make_shared<videoFrame>(p_codec_ctx);}
@@ -134,7 +134,7 @@ videoDecoder::videoDecoder(AVCodecParameters *_p_codec_par,int _idx,int frame_ra
     }
 
 
-    try{renderer=std::make_unique<videoSdlRenderer>(p_codec_ctx,frame,frame_rate);}
+    try{renderer=std::make_unique<videoSdlRenderer>(p_codec_ctx,frame);}
     catch(const std::exception& e)
     {
         std::cout<<e.what()<<std::endl;

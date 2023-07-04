@@ -55,17 +55,22 @@ Video::Video(const std::string& filename):filename(filename)
         throw std::runtime_error("Cann't find a audio stream\n");
     }
 
+    AVCodecParameters *v_p_codec_par = p_fmt_ctx->streams[v_idx]->codecpar;
+    AVCodecParameters *a_p_codec_par = p_fmt_ctx->streams[a_idx]->codecpar;
+
+    v_timebase_in_ms =av_q2d(p_fmt_ctx->streams[v_idx]->time_base) * 1000;
+    a_timebase_in_ms =av_q2d(p_fmt_ctx->streams[a_idx]->time_base) * 1000;
 
 
 
-    try{v_decoder=std::make_unique<videoDecoder>(p_fmt_ctx, v_idx ,frame_rate);}
+    try{v_decoder=std::make_unique<videoDecoder>(v_p_codec_par, v_idx ,frame_rate,v_timebase_in_ms);}
     catch(const std::exception& e)
     {
         std::cout<<e.what()<<std::endl;
         avformat_close_input(&p_fmt_ctx);
         throw std::runtime_error("create v_decoder failed\n");
     } 
-    try{a_decoder=std::make_unique<audioDecoder>(p_fmt_ctx, a_idx);}
+    try{a_decoder=std::make_unique<audioDecoder>(a_p_codec_par, a_idx,a_timebase_in_ms);}
     catch(const std::exception& e)
     {
         std::cout<<e.what()<<std::endl;

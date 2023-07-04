@@ -9,13 +9,13 @@ packetQueue audio_packet_queue;
 
 int videoDecoder::duration=0;
 
-Decoder::Decoder(AVFormatContext* _p_fmt_ctx,int _idx):idx(_idx),p_fmt_ctx(_p_fmt_ctx)
+Decoder::Decoder(AVCodecParameters *_p_codec_par,int _idx,double _timebase_in_ms):idx(_idx),timebase_in_ms(_timebase_in_ms)
 {
     // A5.1 获取解码器参数AVCodecParameters
-    AVCodecParameters *p_codec_par = _p_fmt_ctx->streams[_idx]->codecpar;
+    
 
     // A5.2 获取解码器
-    const AVCodec* p_codec = avcodec_find_decoder(p_codec_par->codec_id);
+    const AVCodec* p_codec = avcodec_find_decoder(_p_codec_par->codec_id);
     if (p_codec == NULL)
     {
         throw std::runtime_error("Cann't find codec!");
@@ -30,7 +30,7 @@ Decoder::Decoder(AVFormatContext* _p_fmt_ctx,int _idx):idx(_idx),p_fmt_ctx(_p_fm
         throw std::runtime_error("avcodec_alloc_context3() failed ");
     }
     // A5.3.2 p_codec_ctx初始化：p_codec_par ==> p_codec_ctx，初始化相应成员
-    int ret = avcodec_parameters_to_context(p_codec_ctx, p_codec_par);
+    int ret = avcodec_parameters_to_context(p_codec_ctx, _p_codec_par);
     if (ret < 0)
     {
         avcodec_free_context(&p_codec_ctx);
@@ -122,8 +122,8 @@ void Decoder::push_All_Packets(AVFormatContext*p_fmt_ctx){
 
 
 
-videoDecoder::videoDecoder(AVFormatContext* p_fmt_ctx,int _idx,int frame_rate):Decoder(p_fmt_ctx,_idx){
-    timebase_in_ms=av_q2d(p_fmt_ctx->streams[_idx]->time_base) * 1000;
+videoDecoder::videoDecoder(AVCodecParameters *_p_codec_par,int _idx,int frame_rate,double _timebase_in_ms):Decoder(_p_codec_par,_idx,_timebase_in_ms){
+    
 
     try{frame=std::make_shared<videoFrame>(p_codec_ctx);}
     catch(const std::exception& e)
@@ -237,13 +237,13 @@ int videoDecoder::present_One_frame(){
 }
 
 
+std::shared_ptr<audioDecoder> static_a_decoder;
 
-
-audioDecoder::audioDecoder(AVFormatContext* _p_fmt_ctx,int _idx):Decoder(_p_fmt_ctx,_idx){
+audioDecoder::audioDecoder(AVCodecParameters *_p_codec_par,int _idx,double _timebase_in_ms):Decoder(_p_codec_par,_idx,_timebase_in_ms){
     
-    timebase_in_ms=av_q2d(p_fmt_ctx->streams[_idx]->time_base) * 1000;
-    audio_idx=_idx;
-    audio_p_fmt_ctx=_p_fmt_ctx;
+    // timebase_in_ms=av_q2d(p_fmt_ctx->streams[_idx]->time_base) * 1000;
+    // audio_idx=_idx;
+    // audio_p_fmt_ctx=_p_fmt_ctx;
 
     // try{renderer=std::make_unique<audioSdlRenderer>(p_codec_ctx);}
     // catch(const std::exception& e)
@@ -256,10 +256,10 @@ audioDecoder::audioDecoder(AVFormatContext* _p_fmt_ctx,int _idx):Decoder(_p_fmt_
     // frame=renderer->frame;
     
     // A5.1 获取解码器参数AVCodecParameters
-    AVCodecParameters *p_codec_par = _p_fmt_ctx->streams[_idx]->codecpar;
+    // AVCodecParameters *p_codec_par = _p_fmt_ctx->streams[_idx]->codecpar;
 
     // A5.2 获取解码器
-    const AVCodec* p_codec = avcodec_find_decoder(p_codec_par->codec_id);
+    const AVCodec* p_codec = avcodec_find_decoder(_p_codec_par->codec_id);
     if (p_codec == NULL)
     {
         throw std::runtime_error("Cann't find codec!");
@@ -274,7 +274,7 @@ audioDecoder::audioDecoder(AVFormatContext* _p_fmt_ctx,int _idx):Decoder(_p_fmt_
         throw std::runtime_error("avcodec_alloc_context3() failed ");
     }
     // A5.3.2 p_codec_ctx初始化：p_codec_par ==> p_codec_ctx，初始化相应成员
-    int ret = avcodec_parameters_to_context(p_codec_ctx, p_codec_par);
+    int ret = avcodec_parameters_to_context(p_codec_ctx, _p_codec_par);
     if (ret < 0)
     {
         avcodec_free_context(&p_codec_ctx);
@@ -330,6 +330,8 @@ audioDecoder::audioDecoder(AVFormatContext* _p_fmt_ctx,int _idx):Decoder(_p_fmt_
     }
     s_audio_param_src = s_audio_param_tgt;
     
+
+    static_a_decoder=std::make_shared<audioDecoder>(*this);
 
 }
 

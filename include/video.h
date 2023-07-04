@@ -18,9 +18,11 @@ public:
 
     AVFormatContext* p_fmt_ctx = NULL;
     //AVCodecContext* p_codec_ctx = NULL;
-
     
-
+    AVCodecParameters *v_p_codec_par=NULL;
+    AVCodecParameters *a_p_codec_par=NULL;
+    double v_timebase_in_ms;
+    double a_timebase_in_ms;
 
 
     int width;

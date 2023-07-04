@@ -1,5 +1,6 @@
 #include "audio.h"
- AVFormatContext* audio_p_fmt_ctx=NULL;
+#include "decoder.h"
+//  AVFormatContext* audio_p_fmt_ctx=NULL;
  int audio_idx=-1;
 
 
@@ -251,7 +252,7 @@ void sdl_audio_callback(void *userdata, uint8_t *stream, int len)
 
 
                 // 检查包是否在播放时间之前，如果是，则将其跳过
-                s_audio_play_time=p_packet_ptr->mypkt.pts * audio_p_fmt_ctx->streams[audio_idx]->time_base.num * 1000 / audio_p_fmt_ctx->streams[audio_idx]->time_base.den;
+                s_audio_play_time=p_packet_ptr->mypkt.pts * static_a_decoder->timebase_in_ms;
                 auto end = std::chrono::high_resolution_clock::now();
                 auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 

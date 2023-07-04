@@ -86,18 +86,12 @@ int main(int argc, char* argv[]) {
     // send(accept_socket, (const char *)&video.v_idx,sizeof(video.v_idx),0);
     // send(accept_socket, (const char *)video.a_p_codec_par, sizeof(*video.a_p_codec_par), 0);
     SEND(video.v_idx);
-    std::vector<char> vbytes(sizeof(AVCodecParameters));
-    memcpy(vbytes.data(), video.v_p_codec_par, sizeof(AVCodecParameters));
-    send(accept_socket,vbytes.data(),vbytes.size(),0);
-    //SEND(video.v_p_codec_par->extradata_size);
+    SEND(*video.v_p_codec_par);
     send(accept_socket,(const char *)video.v_p_codec_par->extradata,video.v_p_codec_par->extradata_size,0);
     SEND(video.v_timebase_in_ms);
 
     SEND(video.a_idx);
-    std::vector<char> abytes(sizeof(AVCodecParameters));
-    memcpy(abytes.data(), video.a_p_codec_par, sizeof(AVCodecParameters));
-    send(accept_socket,abytes.data(),abytes.size(),0);
-    //SEND(video.a_p_codec_par->extradata_size);
+    SEND(*video.a_p_codec_par);
     send(accept_socket,(const char *)video.a_p_codec_par->extradata,video.a_p_codec_par->extradata_size,0);
     SEND(video.a_timebase_in_ms);
 

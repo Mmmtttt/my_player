@@ -78,19 +78,19 @@ void videoDecoder::get_Packet(){
 
         //std::cout<<"video: "<<time_shaft<<" - "<<s_video_play_time<<" = "<<time_shaft-s_video_play_time<<std::endl;
         int64_t diff=time_shaft-s_video_play_time;
-        if(-300<diff&&diff<300)break;   
-        else if (300 <= diff && diff<1000)
+        if(Video_Delay_in_Range(diff))break;   
+        else if (Video_Delay_Behind(diff))
         {
             //avcodec_flush_buffers(p_codec_ctx);
             continue;
         }
-        else if(-300>=diff&&diff>=-1000)
+        else if(Video_Delay_Advanced(diff))
         {
             //avcodec_flush_buffers(p_codec_ctx);
             video_packet_queue.curr_decode_pos=video_packet_queue.curr_decode_pos-2;
             continue;
         }
-        else if(diff>5000||diff<-5000){video_packet_queue.seek(time_shaft,timebase_in_ms);avcodec_flush_buffers(p_codec_ctx);}
+        else if(Video_Should_Seek(diff)){video_packet_queue.seek(time_shaft,timebase_in_ms);avcodec_flush_buffers(p_codec_ctx);}
     }
     
 
@@ -104,12 +104,18 @@ void videoDecoder::get_Packet(){
 void Decoder::push_All_Packets(AVFormatContext*p_fmt_ctx){
     int ret=0;
     while(ret==0){
-        std::shared_ptr<myAVPacket> temp(new myAVPacket);
+        std::shared_ptr<myAVPacket> temp(new myAVPacket());
         ret=av_read_frame(p_fmt_ctx, &temp->mypkt);
         temp->size=temp->mypkt.size;
-        if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO)
+        temp->is_recived=true;
+        temp->num++;
+        if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
+            temp->id_in_queue=video_packet_queue.pkts_ptr.size();
             video_packet_queue.packet_queue_push(temp);
+        }
+            
         else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
+            temp->id_in_queue=video_packet_queue.pkts_ptr.size();
             audio_packet_queue.packet_queue_push(temp);
         }
     }
@@ -340,95 +346,3 @@ audioDecoder::~audioDecoder(){
     std::cout<<"aideoDecoder destoryed"<<std::endl;
 }
 
-// int audioDecoder::decode_One_frame(){
-//     int ret = avcodec_receive_frame(p_codec_ctx, frame->frame);
-//     if (ret != 0)
-//     {
-//         if (ret == AVERROR_EOF)
-//         {
-//             throw std::runtime_error("audio avcodec_receive_frame(): the decoder has been fully flushed");
-//         }
-//         else if (ret == AVERROR(EAGAIN))
-//         {
-//             //printf("audio avcodec_receive_frame(): output is not available in this state - "
-//             //       "user must try to send new input\n");
-//             return -1;
-//         }
-//         else if (ret == AVERROR(EINVAL))
-//         {
-//             throw std::runtime_error("audio avcodec_receive_frame(): codec not opened, or it is an encoder");
-//         }
-//         else
-//         {
-//             throw std::runtime_error("audio avcodec_receive_frame(): legitimate decoding errors");
-//         }
-//     }
-//     return ret;
-// }
-
-// int audioDecoder::present_One_frame(){
-//     // try{get_Packet();}
-//     // catch(const std::exception&e){
-//     //     throw std::runtime_error(e.what());
-//     // }
-//     int ret ;
-//     while(1){
-//         try{ret=decode_One_frame();} 
-//         catch(const std::exception&e){
-//             throw std::runtime_error(e.what());
-//         }
-//         if(ret==-1) {get_Packet();return -1;}
-//         try{renderer->renderFrame(p_codec_ctx);}
-//         catch(const std::exception&e){
-//             throw std::runtime_error(e.what());
-//         }
-//         //SDL_PauseAudio(0);
-//     }
-//     //av_packet_unref(p_packet);
-//     return 1;
-// }
-
-// void audioDecoder::sdl_audio_callback(void *userdata, uint8_t *stream, int len){
-//     AVCodecContext *p_codec_ctx = (AVCodecContext *)userdata;
-//     int copy_len;           // 
-//     int get_size;           // 获取到解码后的音频数据大小
-
-//     static uint8_t s_audio_buf[(MAX_AUDIO_FRAME_SIZE*3)/2]; // 1.5倍声音帧的大小
-//     static uint32_t s_audio_len = 0;    // 新取得的音频数据大小
-//     static uint32_t s_tx_idx = 0;       // 已发送给设备的数据量
-//     int frm_size = 0;
-//     int ret_size = 0;
-//     int ret;
-
-//     //get_size=static_a_decoder->decode_One_frame();
-//     // if (get_size < 0)
-//     // {
-//     //     // 出错输出一段静音
-//     //     s_audio_len = 1024; // arbitrary?
-//     //     memset(s_audio_buf, 0, s_audio_len);
-//     //     //av_packet_unref(p_packet);
-//     //     printf("error silence\n");
-//     // }
-//     // else if (get_size == 0) // 解码缓冲区被冲洗，整个解码过程完毕
-//     // {
-//     //     printf("2\n");
-//     // }
-//     // else
-//     // {
-//     //     //printf("3\n");
-//     //     s_audio_len = get_size;
-//     //     //av_packet_unref(p_packet);
-//     // }
-//     // s_tx_idx = 0;
-//     // copy_len = s_audio_len - s_tx_idx;
-//     //     if (copy_len > len)
-//     //     {
-//     //         copy_len = len;
-//     //     }
-//     //     memcpy(stream, (uint8_t *)s_audio_buf + s_tx_idx, copy_len);
-//     //     len -= copy_len;
-//     //     stream += copy_len;
-//     //     s_tx_idx += copy_len;
-//     if(static_a_decoder->renderer->audio_buf==NULL)throw std::runtime_error("audio_buf is null");
-//     memcpy(stream,static_a_decoder->renderer->audio_buf,static_a_decoder->renderer->frame->cp_len);
-// }

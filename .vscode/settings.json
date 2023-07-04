@@ -93,6 +93,8 @@
     "postprocess.h": "c",
     "condition_variable": "cpp",
     "mutex": "cpp",
-    "map": "cpp"
+    "map": "cpp",
+    "functional": "cpp",
+    "iterator": "cpp"
   }
 }

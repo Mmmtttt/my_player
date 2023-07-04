@@ -3,7 +3,7 @@ project(MyPlayer)
 
 # 设置源代码目录
 set(SOURCES
-    main.cpp
+    #main.cpp
     #src/audio.cpp
     src/decoder.cpp
     src/frame.cpp
@@ -30,10 +30,14 @@ link_directories (
 
 
 # 添加可执行文件生成
-add_executable(MyPlayer ${SOURCES})
+add_executable(MyPlayer ${SOURCES} main.cpp)
+add_executable(serverMyPlayer ${SOURCES} src/server.cpp)
+add_executable(clientMyPlayer ${SOURCES} src/client.cpp)
 
 
 set_target_properties(MyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
+set_target_properties(serverMyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
+set_target_properties(clientMyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 # 链接 FFmpeg 库
 target_link_libraries(MyPlayer
@@ -44,4 +48,24 @@ target_link_libraries(MyPlayer
     swscale.lib
     SDL2main.lib
     SDL2.lib
+)
+target_link_libraries(serverMyPlayer
+    avcodec.lib
+    avformat.lib
+    avutil.lib
+    swresample.lib
+    swscale.lib
+    SDL2main.lib
+    SDL2.lib
+    ws2_32
+)
+target_link_libraries(clientMyPlayer
+    avcodec.lib
+    avformat.lib
+    avutil.lib
+    swresample.lib
+    swscale.lib
+    SDL2main.lib
+    SDL2.lib
+    ws2_32
 )

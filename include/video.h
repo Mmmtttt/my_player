@@ -11,7 +11,7 @@ public:
     Video(const std::string& filename);
     ~Video();
 
-    Video(int a_idx,AVCodecParameters *v_p_codec_par,double v_timebase_in_ms,int v_idx,AVCodecParameters *a_p_codec_par,double a_timebase_in_ms);
+    Video(int v_idx,AVCodecParameters *v_p_codec_par,double v_timebase_in_ms,int a_idx,AVCodecParameters *a_p_codec_par,double a_timebase_in_ms);
 
 
     void play();

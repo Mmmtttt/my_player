@@ -5,13 +5,13 @@
       "name": "C/C++ Runner: Debug Session",
       "type": "cppdbg",
       "request": "launch",
-      "args": [],
+      "args": ["1.mp4"],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/Administrator/Desktop/Homework/C++/my_player",
-      "program": "c:/Users/Administrator/Desktop/Homework/C++/my_player/build/Debug/outDebug",
+      "cwd": "J:/transform/Homework/C++/my_player",
+      "program": "J:/transform/Homework/C++/my_player/clientMyplayer.exe",
       "MIMode": "gdb",
-      "miDebuggerPath": "gdb",
+      "miDebuggerPath": "",
       "setupCommands": [
         {
           "description": "Enable pretty-printing for gdb",

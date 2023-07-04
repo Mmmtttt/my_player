@@ -261,16 +261,15 @@ void sdl_audio_callback(void *userdata, uint8_t *stream, int len)
 
                 //std::cout<<"audio: "<<time_shaft<<" - "<<s_audio_play_time<<" = "<<time_shaft-s_audio_play_time<<std::endl;
                 int64_t diff=time_shaft-s_audio_play_time;
-                if (50 <= diff)
-                {
+                if (Audio_Delay_in_Range(diff)){break;}
+                else if(Audio_Delay_Behind(diff)){
                     continue;
                 }
-                else if(-50>=diff)
-                {
+                else if(Audio_Delay_Advanced(diff)){
                     audio_packet_queue.curr_decode_pos=audio_packet_queue.curr_decode_pos-2;
                     continue;
                 }
-                else{break;}
+                else if(Audio_Should_Seek(diff)){audio_packet_queue.seek(time_shaft,static_a_decoder->timebase_in_ms);}
             }
             // 解码并根据播放速率处理
             s_audio_len = audio_decode_frame(p_codec_ctx, p_packet_ptr, s_audio_buf, sizeof(s_audio_buf)) / s_audio_playback_rate;

@@ -117,13 +117,13 @@ int main(int argc, char* argv[]) {
     video_packet_queue.curr_decode_pos=0;
     audio_packet_queue.curr_decode_pos=0;
 
-    for(int i=0;i<v_size+a_size-2;i++){
+    while(video_packet_queue.curr_decode_pos+audio_packet_queue.curr_decode_pos<v_size+a_size-2){
         
         if((video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->num)<=(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->num)){
             std::unique_lock<std::mutex>(video_packet_queue.Mutex);
             SEND_ALL(video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size);
             SEND_ALL(*video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]);
-            num_mapping_id_in_queue[i]=std::pair<int,int64_t>(0,video_packet_queue.curr_decode_pos);
+            num_mapping_id_in_queue[video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->num]=std::pair<int,int64_t>(0,video_packet_queue.curr_decode_pos);
             
             video_packet_queue.curr_decode_pos++;
         }
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
             std::unique_lock<std::mutex>(audio_packet_queue.Mutex);
             SEND_ALL(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->size);
             SEND_ALL(*audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]);
-            num_mapping_id_in_queue[i]=std::pair<int,int64_t>(1,audio_packet_queue.curr_decode_pos);
+            num_mapping_id_in_queue[video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->num]=std::pair<int,int64_t>(1,audio_packet_queue.curr_decode_pos);
             
             audio_packet_queue.curr_decode_pos++;
         }
@@ -145,13 +145,14 @@ int main(int argc, char* argv[]) {
     std::thread t0([&]{
         while(1){
             seek_handle();
-            SDL_Delay(10);
+            auto aq=&audio_packet_queue;
+            auto vq=&video_packet_queue;
         }
     });
     
 
     for(int i=0;i<v_size+a_size-2;i++){
-        //SDL_Delay(30);
+        //SDL_Delay(1000);
         if((video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->num)<=(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->num)){
             SEND_ALL(video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size);
             SEND_ALL(*video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]);

@@ -42,13 +42,17 @@ void seek_handle()
     
     if(num_mapping_id_in_queue[num].first==0){
         std::unique_lock<std::mutex>(video_packet_queue.Mutex);
-        video_packet_queue.curr_decode_pos=num_mapping_id_in_queue[num].second-100;
-
+        video_packet_queue.curr_decode_pos=num_mapping_id_in_queue[num].second;
+        if(video_packet_queue.curr_decode_pos<0)video_packet_queue.curr_decode_pos=0;
+        int64_t a = video_packet_queue.curr_decode_pos;
+        a++;
     }
     else if(num_mapping_id_in_queue[num].first==1){
         std::unique_lock<std::mutex>(audio_packet_queue.Mutex);
-        audio_packet_queue.curr_decode_pos=num_mapping_id_in_queue[num].second-100;
-
+        audio_packet_queue.curr_decode_pos=num_mapping_id_in_queue[num].second;
+        if(audio_packet_queue.curr_decode_pos<0)audio_packet_queue.curr_decode_pos=0;
+        int64_t a = audio_packet_queue.curr_decode_pos;
+        a++;
     }
     
 }

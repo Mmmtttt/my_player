@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     
 
     std::thread t([&]{
-        for(int i=0;i<v_size+a_size-2;i++){
+        while(video_packet_queue.curr_decode_pos+audio_packet_queue.curr_decode_pos<v_size+a_size-2){
             std::shared_ptr<myAVPacket> temp=std::shared_ptr<myAVPacket>(new myAVPacket);
             int64_t size;
             RECV_ALL(size);
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
         }
         return 0;
     });
-t.detach();
+    t.detach();
 
     video.play();
     std::cout<<"1"<<std::endl;

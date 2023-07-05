@@ -77,7 +77,7 @@ void packetQueue::seek(int64_t& timeshaft,double timebase){
         while(timeshaft>dts){
             curr_decode_pos++;
             if(curr_decode_pos>=pkts_ptr.size()){curr_decode_pos=pkts_ptr.size()-1;break;}
-            if(pkts_ptr[curr_decode_pos]->mypkt.flags!=1)continue;
+            if((pkts_ptr[curr_decode_pos]->mypkt.stream_index==0)&&(pkts_ptr[curr_decode_pos]->mypkt.flags!=1))continue;
             dts=pkts_ptr[curr_decode_pos]->mypkt.dts*timebase;
         }
         if(!pkts_ptr[curr_decode_pos]->is_recived){
@@ -93,7 +93,7 @@ void packetQueue::seek(int64_t& timeshaft,double timebase){
         while(timeshaft<dts){
             curr_decode_pos--;
             if(curr_decode_pos<0){curr_decode_pos=0;break;}
-            if(pkts_ptr[curr_decode_pos]->mypkt.flags!=1)continue;
+            if((pkts_ptr[curr_decode_pos]->mypkt.stream_index==0)&&(pkts_ptr[curr_decode_pos]->mypkt.flags!=1))continue;
             dts=pkts_ptr[curr_decode_pos]->mypkt.dts*timebase;
         }
         if(!pkts_ptr[curr_decode_pos]->is_recived){

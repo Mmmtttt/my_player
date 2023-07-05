@@ -175,6 +175,10 @@ void Video::play(){
             {
                 if(speed>0.5)speed-=0.25;
             }
+            else if (sdl_event.key.keysym.sym == SDLK_9)
+            {
+                time_shaft=20*60*1000;
+            }
             
         }
         else if (sdl_event.type == SDL_QUIT)

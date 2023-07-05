@@ -28,6 +28,8 @@ SOCKET accept_socket;
 SOCKET client_socket;
 sockaddr_in clientService;
 
+std::map<int64_t,std::pair<int,int64_t>> num_mapping_id_in_queue;
+
 
 int main(int argc, char* argv[]) {
 
@@ -112,6 +114,31 @@ int main(int argc, char* argv[]) {
 
     // auto vq=&video_packet_queue;  //调试用到
     // auto aq=&audio_packet_queue;
+    video_packet_queue.curr_decode_pos=0;
+    audio_packet_queue.curr_decode_pos=0;
+
+    for(int i=0;i<v_size+a_size-2;i++){
+
+        if((video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->num)<=(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->num)){
+            SEND_ALL(video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size);
+            SEND_ALL(*video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]);
+            num_mapping_id_in_queue[i]=std::pair<int,int64_t>(0,video_packet_queue.curr_decode_pos);
+            
+            video_packet_queue.curr_decode_pos++;
+        }
+        else{
+            SEND_ALL(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->size);
+            SEND_ALL(*audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]);
+            num_mapping_id_in_queue[i]=std::pair<int,int64_t>(1,audio_packet_queue.curr_decode_pos);
+            
+            audio_packet_queue.curr_decode_pos++;
+        }
+
+    }
+    
+
+    video_packet_queue.curr_decode_pos=0;
+    audio_packet_queue.curr_decode_pos=0;
 
     std::thread t0([&]{
         while(1){
@@ -119,6 +146,7 @@ int main(int argc, char* argv[]) {
             SDL_Delay(500);
         }
     });
+    
 
     while(video_packet_queue.curr_decode_pos<video_packet_queue.pkts_ptr.size()&&audio_packet_queue.curr_decode_pos<audio_packet_queue.pkts_ptr.size()){
         SDL_Delay(10);

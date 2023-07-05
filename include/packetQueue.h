@@ -15,8 +15,8 @@ class myAVPacket{
         //myAVPacket(AVPacket pkt):mypkt(pkt),size(pkt.size){num++;}
         ~myAVPacket(){
             //std::cout<<"destory num "<<num<<std::endl;
-            if(num==0)return;
-            av_packet_unref(&mypkt);
+            // if(is_recived==false)return;
+            // av_packet_unref(&mypkt);
         }
 
         AVPacket mypkt;
@@ -40,6 +40,7 @@ class packetQueue{
             std::cout<<"packet queue resize "<<size<<std::endl;
         }
         void insert(std::shared_ptr<myAVPacket> pkt_ptr);
+        void insert(int64_t pos, char* data);
 
         int packet_queue_push(std::shared_ptr<myAVPacket> pkt_ptr);
         int packet_queue_pop(std::shared_ptr<myAVPacket>& pkt_ptr, int block);

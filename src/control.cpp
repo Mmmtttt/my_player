@@ -39,14 +39,14 @@ void seek_handle()
     int64_t num;
     int ret=recv(accept_socket,(char*)&num,sizeof(num),0);
     if(ret<=0)return;
-    for(int64_t i=0;i<=num;i++){
-        if(video_packet_queue.pkts_ptr[i]->num==i){
-            video_packet_queue.curr_decode_pos=i;
-            break;
-        }
-        else if(audio_packet_queue.pkts_ptr[i]->num==i){
-            audio_packet_queue.curr_decode_pos=i;
-            break;
-        }
+    
+    if(num_mapping_id_in_queue[num].first==0){
+        video_packet_queue.curr_decode_pos=num_mapping_id_in_queue[num].second;
+
     }
+    else if(num_mapping_id_in_queue[num].first==1){
+        audio_packet_queue.curr_decode_pos=num_mapping_id_in_queue[num].second;
+
+    }
+    
 }

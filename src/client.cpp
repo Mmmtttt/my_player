@@ -29,6 +29,8 @@ SOCKET listen_socket;
 sockaddr_in serverService;
 SOCKET accept_socket;
 
+std::map<int64_t,std::pair<int,int64_t>> num_mapping_id_in_queue;
+
 
 int main(int argc, char* argv[]) {
     WSADATA wsaData;
@@ -96,12 +98,36 @@ int main(int argc, char* argv[]) {
     RECV_ALL(aaa);
 
     Video video(v_idx,&v_p_codec_par,v_timebase_in_ms,a_idx,&a_p_codec_par,a_timebase_in_ms);
-    video_packet_queue.initial(v_size);
-    audio_packet_queue.initial(a_size);
 
-    // std::cout<<sizeof(myAVPacket)<<" "<<sizeof(AVPacket)<<std::endl;
+
+    int64_t bbb=0,c=0;
+    for(int64_t i=0;i<v_size+a_size-2;i++){
+        std::shared_ptr<myAVPacket> temp=std::shared_ptr<myAVPacket>(new myAVPacket);
+        int64_t size;
+        RECV_ALL(size);
+        av_new_packet(&temp->mypkt, size);
+        AVBufferRef *buf=temp->mypkt.buf;
+        uint8_t *data=temp->mypkt.data;
+        RECV_ALL(*temp);
+        //recv_all(client_socket,(char *)data,size);
+        temp->mypkt.data=data;
+        temp->mypkt.buf=buf;
+        temp->is_recived=false;
+
+        if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
+            video_packet_queue.packet_queue_push(temp);
+        }
+        else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
+            audio_packet_queue.packet_queue_push(temp);
+        }
+        
+
+    }
     
     
+    auto vq=&video_packet_queue;  //调试用到
+    auto aq=&audio_packet_queue;
+
     std::thread t([&]{
         auto vQ = &video_packet_queue;
         auto aQ = &audio_packet_queue;
@@ -112,18 +138,19 @@ int main(int argc, char* argv[]) {
             av_new_packet(&temp->mypkt, size);
             char *buf=(char *)temp->mypkt.buf,*data=(char *)temp->mypkt.data;
             RECV_ALL(*temp);
-            //uint8_t *data = (uint8_t*)malloc(size*sizeof(uint8_t));
             recv_all(client_socket,(char *)data,size);
             temp->mypkt.data=(uint8_t *)data;
             temp->mypkt.buf=(AVBufferRef *)buf;
 
             if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
+                temp->is_recived=true;
                 video_packet_queue.insert(temp);
-                //video_packet_queue.cond.notify_all();
+                
             }
             else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
+                temp->is_recived=true;
                 audio_packet_queue.insert(temp);
-                //audio_packet_queue.cond.notify_all();
+                
             }
         }
     });

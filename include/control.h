@@ -21,6 +21,8 @@ extern "C"{
 #include <memory>
 #include <chrono>
 #include <deque>
+#include <map>
+#include <utility>
 
 #define SDL_AUDIO_BUFFER_SIZE 1024
 #define MAX_AUDIO_FRAME_SIZE 192000
@@ -51,7 +53,7 @@ void action();
 void seek_callback(int64_t&num);
 void seek_handle();
 
-
+extern std::map<int64_t,std::pair<int,int64_t>> num_mapping_id_in_queue;
 
 
 #endif

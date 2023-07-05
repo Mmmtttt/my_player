@@ -9,9 +9,10 @@ int packetQueue::packet_queue_push(std::shared_ptr<myAVPacket> pkt_ptr)
 
     size += pkt_ptr->mypkt.size;
     pkts_ptr.push_back(pkt_ptr);
-
-    cond.notify_one();
     lock.unlock();
+    cond.notify_one();
+    pkt_ptr->is_recived=false;
+    
     return 0;
 }
 
@@ -57,6 +58,16 @@ void packetQueue::insert(std::shared_ptr<myAVPacket> pkt_ptr){
     cond.notify_all();
 }
 
+void packetQueue::insert(int64_t pos, char* data){
+    std::unique_lock<std::mutex> lock(Mutex);
+    if(pos>=pkts_ptr.size()||pos<0)
+        throw std::runtime_error("queue insert out of range");
+    pkts_ptr[pos]->mypkt.data=(uint8_t*)data;
+    pkts_ptr[pos]->is_recived=true;
+    lock.unlock();
+    cond.notify_all();
+}
+
 void packetQueue::seek(int64_t& timeshaft,double timebase){
     std::unique_lock<std::mutex> lock(Mutex);
 
@@ -65,27 +76,29 @@ void packetQueue::seek(int64_t& timeshaft,double timebase){
     if(timeshaft>dts){
         while(timeshaft>dts){
             curr_decode_pos++;
-            if(curr_decode_pos>=pkts_ptr.size()){curr_decode_pos=pkts_ptr.size()-1;lock.unlock();}
-            if(!pkts_ptr[curr_decode_pos]->is_recived){
-                pause();
-                seek_callback(curr_decode_pos);
-                cond.wait(lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});
-                action();
-            }
+            if(curr_decode_pos>=pkts_ptr.size()){curr_decode_pos=pkts_ptr.size()-1;break;}
+            
             dts=pkts_ptr[curr_decode_pos]->mypkt.dts*timebase;
+        }
+        if(!pkts_ptr[curr_decode_pos]->is_recived){
+            pause();
+            seek_callback(curr_decode_pos);
+            cond.wait(lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});
+            action();
         }
     }
     else{
         while(timeshaft<dts){
             curr_decode_pos--;
-            if(curr_decode_pos<0){curr_decode_pos=0;lock.unlock();}
-            if(!pkts_ptr[curr_decode_pos]->is_recived){
-                pause();
-                seek_callback(curr_decode_pos);
-                cond.wait(lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});
-                action();
-            }
+            if(curr_decode_pos<0){curr_decode_pos=0;break;}
+            
             dts=pkts_ptr[curr_decode_pos]->mypkt.dts*timebase;
+        }
+        if(!pkts_ptr[curr_decode_pos]->is_recived){
+            pause();
+            seek_callback(curr_decode_pos);
+            cond.wait(lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});
+            action();
         }
     }
     lock.unlock();

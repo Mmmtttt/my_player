@@ -18,6 +18,9 @@ SOCKET accept_socket;
 SOCKET client_socket;
 sockaddr_in clientService;
 
+
+std::map<int64_t,std::pair<int,int64_t>> num_mapping_id_in_queue;
+
 int main(int argc, char* argv[])
 {
     std::string filename;

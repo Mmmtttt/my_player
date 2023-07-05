@@ -5,11 +5,11 @@
       "name": "C/C++ Runner: Debug Session",
       "type": "cppdbg",
       "request": "launch",
-      "args": ["1.mp4"],
+      "args": ["MIFD-132.ts"],
       "stopAtEntry": false,
       "externalConsole": true,
       "cwd": "J:/transform/Homework/C++/my_player",
-      "program": "J:/transform/Homework/C++/my_player/clientMyplayer.exe",
+      "program": "J:/transform/Homework/C++/my_player/Myplayer.exe",
       "MIMode": "gdb",
       "miDebuggerPath": "",
       "setupCommands": [

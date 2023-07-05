@@ -13,12 +13,13 @@ int64_t s_video_play_time = 0;
 
 int main(int argc, char* argv[])
 {
-    if (argc < 2) {
-        std::cout << "Please provide a movie file" << std::endl;
-        return -1;
-    }
+    std::string filename;
 
-    Video video(argv[1]);
+    if (argc < 2) {
+        std::cin>>filename;
+    }
+    else{filename=argv[1];}
+    Video video(filename);
     
     video.v_decoder->push_All_Packets(video.p_fmt_ctx);
     video.play();

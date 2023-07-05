@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     std::string filename;
 
     if (argc < 2) {
-        filename=std::string("1.mp4");
+        std::cin>>filename;
     }
     else{filename=argv[1];}
     Video video(filename);
@@ -105,6 +105,8 @@ int main(int argc, char* argv[]) {
 
     int64_t aaa=123456789;
     SEND_ALL(aaa);
+
+    video.~Video();
 
     // auto vq=&video_packet_queue;  //调试用到
     // auto aq=&audio_packet_queue;

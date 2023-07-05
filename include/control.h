@@ -48,6 +48,8 @@ extern int64_t s_video_play_time;
 
 void pause();
 void action();
+void seek_callback(int64_t&num);
+void seek_handle();
 
 
 

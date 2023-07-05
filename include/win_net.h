@@ -9,3 +9,10 @@
 int send_all(int socket, const char* buffer, size_t length);
 
 int recv_all(int socket, char* buffer, size_t length);
+
+extern SOCKET client_socket;
+extern sockaddr_in clientService;
+
+extern SOCKET listen_socket;
+extern sockaddr_in serverService;
+extern SOCKET accept_socket;

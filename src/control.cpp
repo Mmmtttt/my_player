@@ -1,4 +1,6 @@
 #include "control.h"
+#include "win_net.h"
+#include "packetQueue.h"
 
 void pause(){
     if(s_playing_pause)return;
@@ -25,5 +27,26 @@ void action(){
         
         SDL_PauseAudio(0);
         printf("player %s\n", s_playing_pause ? "pause" : "continue");
+    }
+}
+
+void seek_callback(int64_t &num){
+    send(client_socket,(const char *)&num,sizeof(int64_t),0);
+}
+
+void seek_handle()
+{
+    int64_t num;
+    int ret=recv(accept_socket,(char*)&num,sizeof(num),0);
+    if(ret<=0)return;
+    for(int64_t i=0;i<=num;i++){
+        if(video_packet_queue.pkts_ptr[i]->num==i){
+            video_packet_queue.curr_decode_pos=i;
+            break;
+        }
+        else if(audio_packet_queue.pkts_ptr[i]->num==i){
+            audio_packet_queue.curr_decode_pos=i;
+            break;
+        }
     }
 }

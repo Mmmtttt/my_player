@@ -23,6 +23,12 @@ int64_t s_audio_play_time = 0;
 int64_t s_video_play_time = 0;
 
 
+SOCKET client_socket;
+sockaddr_in clientService;
+SOCKET listen_socket;
+sockaddr_in serverService;
+SOCKET accept_socket;
+
 
 int main(int argc, char* argv[]) {
     WSADATA wsaData;
@@ -32,14 +38,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    SOCKET client_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    client_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (client_socket == INVALID_SOCKET) {
         std::cout << "Error at socket: " << WSAGetLastError() << "\n";
         WSACleanup();
         return 1;
     }
 
-    sockaddr_in clientService;
+    clientService;
     clientService.sin_family = AF_INET;
     clientService.sin_addr.s_addr = inet_addr("127.0.0.1");  // 服务器地址
     clientService.sin_port = htons(12345);  // 同一端口

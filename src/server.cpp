@@ -22,12 +22,14 @@ int64_t s_audio_play_time = 0;
 int64_t s_video_play_time = 0;
 
 
+SOCKET listen_socket;
+sockaddr_in serverService;
+SOCKET accept_socket;
+SOCKET client_socket;
+sockaddr_in clientService;
+
+
 int main(int argc, char* argv[]) {
-
-    
-
-
-
 
 
     WSADATA wsaData;
@@ -37,14 +39,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    SOCKET listen_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    listen_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (listen_socket == INVALID_SOCKET) {
         std::cout << "Error at socket: " << WSAGetLastError() << "\n";
         WSACleanup();
         return 1;
     }
 
-    sockaddr_in serverService;
+    serverService;
     serverService.sin_family = AF_INET;
     serverService.sin_addr.s_addr = INADDR_ANY;
     serverService.sin_port = htons(12345);  // 选择一个端口
@@ -63,7 +65,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    SOCKET accept_socket = accept(listen_socket, NULL, NULL);
+    accept_socket = accept(listen_socket, NULL, NULL);
     if (accept_socket == INVALID_SOCKET) {
         std::cout << "accept() failed: " << WSAGetLastError() << '\n';
         closesocket(listen_socket);
@@ -111,8 +113,15 @@ int main(int argc, char* argv[]) {
     // auto vq=&video_packet_queue;  //调试用到
     // auto aq=&audio_packet_queue;
 
+    std::thread t0([&]{
+        while(1){
+            seek_handle();
+            SDL_Delay(500);
+        }
+    });
+
     while(video_packet_queue.curr_decode_pos<video_packet_queue.pkts_ptr.size()&&audio_packet_queue.curr_decode_pos<audio_packet_queue.pkts_ptr.size()){
-        SDL_Delay(50);
+        SDL_Delay(10);
         if((video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->num)<=(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->num)){
             SEND_ALL(video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size);
             SEND_ALL(*video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]);

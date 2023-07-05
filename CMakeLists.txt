@@ -49,6 +49,7 @@ target_link_libraries(MyPlayer
     swscale.lib
     SDL2main.lib
     SDL2.lib
+    ws2_32
 )
 target_link_libraries(serverMyPlayer
     avcodec.lib

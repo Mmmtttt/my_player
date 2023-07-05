@@ -68,6 +68,7 @@ void packetQueue::seek(int64_t& timeshaft,double timebase){
             if(curr_decode_pos>=pkts_ptr.size()){curr_decode_pos=pkts_ptr.size()-1;lock.unlock();}
             if(!pkts_ptr[curr_decode_pos]->is_recived){
                 pause();
+                seek_callback(curr_decode_pos);
                 cond.wait(lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});
                 action();
             }
@@ -80,6 +81,7 @@ void packetQueue::seek(int64_t& timeshaft,double timebase){
             if(curr_decode_pos<0){curr_decode_pos=0;lock.unlock();}
             if(!pkts_ptr[curr_decode_pos]->is_recived){
                 pause();
+                seek_callback(curr_decode_pos);
                 cond.wait(lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});
                 action();
             }

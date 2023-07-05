@@ -46,11 +46,8 @@ extern int64_t s_video_play_time;
 #define Audio_Delay_Advanced(diff) -50>=diff&&diff>=-300
 #define Audio_Should_Seek(diff) diff>300||diff<-300
 
-#define SEND(A) send(accept_socket,(const char *)&A,sizeof(A),0)
-#define RECV(A) recv(client_socket,(char *)&A,sizeof(A),0)
-
-#define SEND_ALL(A) send_all(accept_socket, (const char*)&A, sizeof(A))
-#define RECV_ALL(A) recv_all(client_socket, (char*)&A, sizeof(A))
+void pause();
+void action();
 
 
 

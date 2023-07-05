@@ -112,6 +112,7 @@ int main(int argc, char* argv[]) {
     // auto aq=&audio_packet_queue;
 
     while(video_packet_queue.curr_decode_pos<video_packet_queue.pkts_ptr.size()&&audio_packet_queue.curr_decode_pos<audio_packet_queue.pkts_ptr.size()){
+        SDL_Delay(50);
         if((video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->num)<=(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->num)){
             SEND_ALL(video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size);
             SEND_ALL(*video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]);

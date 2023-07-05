@@ -22,6 +22,8 @@ int main(int argc, char* argv[])
     Video video(filename);
     
     video.v_decoder->push_All_Packets(video.p_fmt_ctx);
+    auto aq=&audio_packet_queue;
+    auto vq=&video_packet_queue;
     video.play();
 
 

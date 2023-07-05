@@ -1,4 +1,5 @@
 #include "packetQueue.h"
+#include "control.h"
 
 //int64_t myAVPacket::num=0;//从0开始对myAVPacket计数，第一个包序号为1
 
@@ -26,7 +27,9 @@ int packetQueue::packet_queue_pop(std::shared_ptr<myAVPacket>& pkt_ptr, int bloc
         else if (curr_decode_pos<pkts_ptr.size())             // 队列非空，取一个出来
         {
             if(!pkts_ptr[curr_decode_pos]->is_recived){
+                pause();
                 cond.wait(lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});
+                action();
             }
             pkt_ptr=pkts_ptr[curr_decode_pos];
             curr_decode_pos++;
@@ -63,7 +66,11 @@ void packetQueue::seek(int64_t& timeshaft,double timebase){
         while(timeshaft>dts){
             curr_decode_pos++;
             if(curr_decode_pos>=pkts_ptr.size()){curr_decode_pos=pkts_ptr.size()-1;lock.unlock();}
-            if(!pkts_ptr[curr_decode_pos]->is_recived){cond.wait(lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});}
+            if(!pkts_ptr[curr_decode_pos]->is_recived){
+                pause();
+                cond.wait(lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});
+                action();
+            }
             dts=pkts_ptr[curr_decode_pos]->mypkt.dts*timebase;
         }
     }
@@ -71,7 +78,11 @@ void packetQueue::seek(int64_t& timeshaft,double timebase){
         while(timeshaft<dts){
             curr_decode_pos--;
             if(curr_decode_pos<0){curr_decode_pos=0;lock.unlock();}
-            if(!pkts_ptr[curr_decode_pos]->is_recived){cond.wait(lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});}
+            if(!pkts_ptr[curr_decode_pos]->is_recived){
+                pause();
+                cond.wait(lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});
+                action();
+            }
             dts=pkts_ptr[curr_decode_pos]->mypkt.dts*timebase;
         }
     }

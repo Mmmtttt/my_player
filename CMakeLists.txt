@@ -11,6 +11,7 @@ set(SOURCES
     src/video.cpp
     src/packetQueue.cpp
     src/audio.cpp
+    src/control.cpp
     # 添加其他源文件
 )
 

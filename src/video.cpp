@@ -143,16 +143,18 @@ void Video::play(){
         {
             if (sdl_event.key.keysym.sym == SDLK_SPACE)
             {
-                // 用户按空格键，暂停/继续状态切换
-                s_playing_pause = !s_playing_pause;
-                auto end = std::chrono::high_resolution_clock::now();
-                auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-                v_last_time=elapsed.count();
-                a_last_time=elapsed.count();
+                // // 用户按空格键，暂停/继续状态切换
+                // s_playing_pause = !s_playing_pause;
+                // auto end = std::chrono::high_resolution_clock::now();
+                // auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+                // v_last_time=elapsed.count();
+                // a_last_time=elapsed.count();
                 
-                if(s_playing_pause)SDL_PauseAudio(1);
-                else SDL_PauseAudio(0);
-                printf("player %s\n", s_playing_pause ? "pause" : "continue");
+                // if(s_playing_pause)SDL_PauseAudio(1);
+                // else SDL_PauseAudio(0);
+                // printf("player %s\n", s_playing_pause ? "pause" : "continue");
+                if(s_playing_pause)action();
+                else pause();
             }
             else if (sdl_event.key.keysym.sym == SDLK_LEFT)
             {

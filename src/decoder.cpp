@@ -120,6 +120,7 @@ void Decoder::push_All_Packets(AVFormatContext*p_fmt_ctx){
         else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
             temp->id_in_queue=audio_packet_queue.pkts_ptr.size();
             audio_packet_queue.packet_queue_push(temp);
+            temp->is_recived=true;
         }
     }
 }

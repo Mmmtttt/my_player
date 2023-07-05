@@ -77,29 +77,33 @@ void packetQueue::seek(int64_t& timeshaft,double timebase){
         while(timeshaft>dts){
             curr_decode_pos++;
             if(curr_decode_pos>=pkts_ptr.size()){curr_decode_pos=pkts_ptr.size()-1;break;}
-            
+            if(pkts_ptr[curr_decode_pos]->mypkt.flags!=1)continue;
             dts=pkts_ptr[curr_decode_pos]->mypkt.dts*timebase;
         }
         if(!pkts_ptr[curr_decode_pos]->is_recived){
             pause();
-            seek_callback(curr_decode_pos);
+            seek_callback(pkts_ptr[curr_decode_pos]->num);
             cond.wait(lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});
+            //lock.unlock();while(!pkts_ptr[curr_decode_pos]->is_recived){SDL_Delay(1);}lock.lock();
             action();
         }
+        
     }
     else{
         while(timeshaft<dts){
             curr_decode_pos--;
             if(curr_decode_pos<0){curr_decode_pos=0;break;}
-            
+            if(pkts_ptr[curr_decode_pos]->mypkt.flags!=1)continue;
             dts=pkts_ptr[curr_decode_pos]->mypkt.dts*timebase;
         }
         if(!pkts_ptr[curr_decode_pos]->is_recived){
             pause();
-            seek_callback(curr_decode_pos);
+            seek_callback(pkts_ptr[curr_decode_pos]->num);
             cond.wait(lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});
+            //lock.unlock();while(!pkts_ptr[curr_decode_pos]->is_recived){SDL_Delay(1);}lock.lock();
             action();
         }
     }
+    timeshaft=pkts_ptr[curr_decode_pos]->mypkt.dts*timebase;
     lock.unlock();
 }

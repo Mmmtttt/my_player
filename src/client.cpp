@@ -124,14 +124,9 @@ int main(int argc, char* argv[]) {
 
     }
     
-    
-    auto vq=&video_packet_queue;  //调试用到
-    auto aq=&audio_packet_queue;
 
     std::thread t([&]{
-        auto vQ = &video_packet_queue;
-        auto aQ = &audio_packet_queue;
-        for(int i=0;i<v_size+a_size;i++){
+        for(int i=0;i<v_size+a_size-2;i++){
             std::shared_ptr<myAVPacket> temp=std::shared_ptr<myAVPacket>(new myAVPacket);
             int64_t size;
             RECV_ALL(size);
@@ -153,11 +148,12 @@ int main(int argc, char* argv[]) {
                 
             }
         }
+        return 0;
     });
-
+t.detach();
 
     video.play();
-    t.join();
+    std::cout<<"1"<<std::endl;
 
     return 0;
 }

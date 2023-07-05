@@ -41,11 +41,13 @@ void seek_handle()
     if(ret<=0)return;
     
     if(num_mapping_id_in_queue[num].first==0){
-        video_packet_queue.curr_decode_pos=num_mapping_id_in_queue[num].second;
+        std::unique_lock<std::mutex>(video_packet_queue.Mutex);
+        video_packet_queue.curr_decode_pos=num_mapping_id_in_queue[num].second-100;
 
     }
     else if(num_mapping_id_in_queue[num].first==1){
-        audio_packet_queue.curr_decode_pos=num_mapping_id_in_queue[num].second;
+        std::unique_lock<std::mutex>(audio_packet_queue.Mutex);
+        audio_packet_queue.curr_decode_pos=num_mapping_id_in_queue[num].second-100;
 
     }
     

@@ -49,6 +49,10 @@ extern int64_t s_video_play_time;
 #define SEND(A) send(accept_socket,(const char *)&A,sizeof(A),0)
 #define RECV(A) recv(client_socket,(char *)&A,sizeof(A),0)
 
+#define SEND_ALL(A) send_all(accept_socket, (const char*)&A, sizeof(A))
+#define RECV_ALL(A) recv_all(client_socket, (char*)&A, sizeof(A))
+
+
 
 
 #endif

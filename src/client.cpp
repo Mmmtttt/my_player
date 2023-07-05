@@ -1,4 +1,5 @@
 #include "video.h"
+#include "win_net.h"
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iostream>
@@ -54,39 +55,39 @@ int main(int argc, char* argv[]) {
     // ... 从服务器接收数据 ...
 
     int v_idx;
-    RECV(v_idx);
+    RECV_ALL(v_idx);
 
 
     AVCodecParameters v_p_codec_par;
-    RECV(v_p_codec_par);
+    RECV_ALL(v_p_codec_par);
     v_p_codec_par.extradata=(uint8_t*)malloc(v_p_codec_par.extradata_size*sizeof(uint8_t));
-    recv(client_socket,(char *)v_p_codec_par.extradata,v_p_codec_par.extradata_size,0);
+    recv_all(client_socket,(char *)v_p_codec_par.extradata,v_p_codec_par.extradata_size);
 
     double v_timebase_in_ms;
-    RECV(v_timebase_in_ms);
+    RECV_ALL(v_timebase_in_ms);
 
     
     
     int a_idx;
-    RECV(a_idx);
+    RECV_ALL(a_idx);
 
     AVCodecParameters a_p_codec_par;
-    RECV(a_p_codec_par);
+    RECV_ALL(a_p_codec_par);
     a_p_codec_par.extradata=(uint8_t*)malloc(a_p_codec_par.extradata_size*sizeof(uint8_t));
-    recv(client_socket,(char *)a_p_codec_par.extradata,a_p_codec_par.extradata_size,0);
+    recv_all(client_socket,(char *)a_p_codec_par.extradata,a_p_codec_par.extradata_size);
     
     double a_timebase_in_ms;
-    RECV(a_timebase_in_ms);
+    RECV_ALL(a_timebase_in_ms);
 
 
     int64_t v_size,a_size;
-    RECV(v_size);
-    RECV(a_size);
+    RECV_ALL(v_size);
+    RECV_ALL(a_size);
 
 
 
     int64_t aaa;
-    RECV(aaa);
+    RECV_ALL(aaa);
 
     Video video(v_idx,&v_p_codec_par,v_timebase_in_ms,a_idx,&a_p_codec_par,a_timebase_in_ms);
     video_packet_queue.initial(v_size);
@@ -101,12 +102,12 @@ int main(int argc, char* argv[]) {
         for(int i=0;i<v_size+a_size;i++){
             std::shared_ptr<myAVPacket> temp=std::shared_ptr<myAVPacket>(new myAVPacket);
             int64_t size;
-            RECV(size);
+            RECV_ALL(size);
             av_new_packet(&temp->mypkt, size);
             char *buf=(char *)temp->mypkt.buf,*data=(char *)temp->mypkt.data;
-            RECV(*temp);
+            RECV_ALL(*temp);
             //uint8_t *data = (uint8_t*)malloc(size*sizeof(uint8_t));
-            recv(client_socket,(char *)data,size,0);
+            recv_all(client_socket,(char *)data,size);
             temp->mypkt.data=(uint8_t *)data;
             temp->mypkt.buf=(AVBufferRef *)buf;
 

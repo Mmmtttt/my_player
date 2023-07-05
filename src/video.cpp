@@ -116,6 +116,7 @@ Video::Video(int _v_idx,AVCodecParameters *_v_p_codec_par,double _v_timebase_in_
         avformat_close_input(&p_fmt_ctx);
         throw std::runtime_error("create a_decoder failed\n");
     }
+    filename=std::string("1.mp4");
 }
 
 

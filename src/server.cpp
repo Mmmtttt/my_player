@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include "video.h"
+#include "win_net.h"
 
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -74,50 +75,53 @@ int main(int argc, char* argv[]) {
 
     // ... 发送数据到客户端 ...
 
+    std::string filename;
+
     if (argc < 2) {
-        std::cout << "Please provide a movie file" << std::endl;
-        Video video("1.mp4");
+        filename=std::string("1.mp4");
     }
-    Video video(argv[1]);
+    else{filename=argv[1];}
+    Video video(filename);
+
     video.v_decoder->push_All_Packets(video.p_fmt_ctx);
 
     
     std::cout<<"prepare ok"<<std::endl;
     // send(accept_socket, (const char *)&video.v_idx,sizeof(video.v_idx),0);
     // send(accept_socket, (const char *)video.a_p_codec_par, sizeof(*video.a_p_codec_par), 0);
-    SEND(video.v_idx);
-    SEND(*video.v_p_codec_par);
-    send(accept_socket,(const char *)video.v_p_codec_par->extradata,video.v_p_codec_par->extradata_size,0);
-    SEND(video.v_timebase_in_ms);
+    SEND_ALL(video.v_idx);
+    SEND_ALL(*video.v_p_codec_par);
+    send_all(accept_socket,(const char *)video.v_p_codec_par->extradata,video.v_p_codec_par->extradata_size);
+    SEND_ALL(video.v_timebase_in_ms);
 
-    SEND(video.a_idx);
-    SEND(*video.a_p_codec_par);
-    send(accept_socket,(const char *)video.a_p_codec_par->extradata,video.a_p_codec_par->extradata_size,0);
-    SEND(video.a_timebase_in_ms);
+    SEND_ALL(video.a_idx);
+    SEND_ALL(*video.a_p_codec_par);
+    send_all(accept_socket,(const char *)video.a_p_codec_par->extradata,video.a_p_codec_par->extradata_size);
+    SEND_ALL(video.a_timebase_in_ms);
 
     int64_t v_size=video_packet_queue.pkts_ptr.size(),a_size=audio_packet_queue.pkts_ptr.size();
-    SEND(v_size);
-    SEND(a_size);
+    SEND_ALL(v_size);
+    SEND_ALL(a_size);
 
     int64_t aaa=123456789;
-    SEND(aaa);
+    SEND_ALL(aaa);
 
     // auto vq=&video_packet_queue;  //调试用到
     // auto aq=&audio_packet_queue;
 
     while(video_packet_queue.curr_decode_pos<video_packet_queue.pkts_ptr.size()&&audio_packet_queue.curr_decode_pos<audio_packet_queue.pkts_ptr.size()){
         if((video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->num)<=(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->num)){
-            SEND(video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size);
-            SEND(*video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]);
+            SEND_ALL(video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size);
+            SEND_ALL(*video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]);
             
-            send(accept_socket,(const char *)video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->mypkt.data,video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size,0);
+            send_all(accept_socket,(const char *)video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->mypkt.data,video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size);
             video_packet_queue.curr_decode_pos++;
         }
         else{
-            SEND(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->size);
-            SEND(*audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]);
+            SEND_ALL(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->size);
+            SEND_ALL(*audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]);
             
-            send(accept_socket,(const char *)audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->mypkt.data,audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->size,0);
+            send_all(accept_socket,(const char *)audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->mypkt.data,audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->size);
             audio_packet_queue.curr_decode_pos++;
         }
     }

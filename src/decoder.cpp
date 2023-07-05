@@ -103,19 +103,21 @@ void videoDecoder::get_Packet(){
 
 void Decoder::push_All_Packets(AVFormatContext*p_fmt_ctx){
     int ret=0;
+    int64_t num=0;
     while(ret==0){
         std::shared_ptr<myAVPacket> temp(new myAVPacket());
         ret=av_read_frame(p_fmt_ctx, &temp->mypkt);
         temp->size=temp->mypkt.size;
         temp->is_recived=true;
-        temp->num++;
+        num++;
+        temp->num=num;
         if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
             temp->id_in_queue=video_packet_queue.pkts_ptr.size();
             video_packet_queue.packet_queue_push(temp);
         }
             
         else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
-            temp->id_in_queue=video_packet_queue.pkts_ptr.size();
+            temp->id_in_queue=audio_packet_queue.pkts_ptr.size();
             audio_packet_queue.packet_queue_push(temp);
         }
     }

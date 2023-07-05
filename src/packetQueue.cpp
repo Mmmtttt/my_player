@@ -25,7 +25,9 @@ int packetQueue::packet_queue_pop(std::shared_ptr<myAVPacket>& pkt_ptr, int bloc
         if(curr_decode_pos<0){curr_decode_pos=0;}
         else if (curr_decode_pos<pkts_ptr.size())             // 队列非空，取一个出来
         {
-            if(!pkts_ptr[curr_decode_pos]->is_recived){cond.wait(lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});}
+            if(!pkts_ptr[curr_decode_pos]->is_recived){
+                cond.wait(lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});
+            }
             pkt_ptr=pkts_ptr[curr_decode_pos];
             curr_decode_pos++;
             ret = 1;
@@ -49,6 +51,7 @@ void packetQueue::insert(std::shared_ptr<myAVPacket> pkt_ptr){
     size+=pkt_ptr->mypkt.size;
     pkt_ptr->is_recived=true;
     lock.unlock();
+    cond.notify_all();
 }
 
 void packetQueue::seek(int64_t& timeshaft,double timebase){

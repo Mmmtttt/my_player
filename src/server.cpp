@@ -102,16 +102,21 @@ int main(int argc, char* argv[]) {
     int64_t aaa=123456789;
     SEND(aaa);
 
+    // auto vq=&video_packet_queue;  //调试用到
+    // auto aq=&audio_packet_queue;
+
     while(video_packet_queue.curr_decode_pos<video_packet_queue.pkts_ptr.size()&&audio_packet_queue.curr_decode_pos<audio_packet_queue.pkts_ptr.size()){
         if((video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->num)<=(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->num)){
-            SEND(*video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]);
             SEND(video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size);
+            SEND(*video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]);
+            
             send(accept_socket,(const char *)video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->mypkt.data,video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size,0);
             video_packet_queue.curr_decode_pos++;
         }
         else{
-            SEND(*audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]);
             SEND(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->size);
+            SEND(*audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]);
+            
             send(accept_socket,(const char *)audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->mypkt.data,audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->size,0);
             audio_packet_queue.curr_decode_pos++;
         }

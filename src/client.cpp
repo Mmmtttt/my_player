@@ -91,27 +91,36 @@ int main(int argc, char* argv[]) {
     Video video(v_idx,&v_p_codec_par,v_timebase_in_ms,a_idx,&a_p_codec_par,a_timebase_in_ms);
     video_packet_queue.initial(v_size);
     audio_packet_queue.initial(a_size);
+
+    // std::cout<<sizeof(myAVPacket)<<" "<<sizeof(AVPacket)<<std::endl;
+    
     
     std::thread t([&]{
+        auto vQ = &video_packet_queue;
+        auto aQ = &audio_packet_queue;
         for(int i=0;i<v_size+a_size;i++){
             std::shared_ptr<myAVPacket> temp=std::shared_ptr<myAVPacket>(new myAVPacket);
-            RECV(*temp);
             int64_t size;
             RECV(size);
-            uint8_t *data = (uint8_t*)malloc(size*sizeof(uint8_t));
+            av_new_packet(&temp->mypkt, size);
+            char *buf=(char *)temp->mypkt.buf,*data=(char *)temp->mypkt.data;
+            RECV(*temp);
+            //uint8_t *data = (uint8_t*)malloc(size*sizeof(uint8_t));
             recv(client_socket,(char *)data,size,0);
-            temp->mypkt.data=data;
+            temp->mypkt.data=(uint8_t *)data;
+            temp->mypkt.buf=(AVBufferRef *)buf;
 
             if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
                 video_packet_queue.insert(temp);
-                video_packet_queue.cond.notify_all();
+                //video_packet_queue.cond.notify_all();
             }
             else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
                 audio_packet_queue.insert(temp);
-                audio_packet_queue.cond.notify_all();
+                //audio_packet_queue.cond.notify_all();
             }
         }
     });
+
 
     video.play();
     t.join();

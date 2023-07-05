@@ -15,6 +15,7 @@ class myAVPacket{
         //myAVPacket(AVPacket pkt):mypkt(pkt),size(pkt.size){num++;}
         ~myAVPacket(){
             //std::cout<<"destory num "<<num<<std::endl;
+            if(num==0)return;
             av_packet_unref(&mypkt);
         }
 

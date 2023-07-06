@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
 
     while(1){
         while(video_packet_queue.curr_decode_pos+audio_packet_queue.curr_decode_pos<v_size+a_size-2){
-            SDL_Delay(10);
+            SDL_Delay(30);
             std::unique_lock<std::mutex> vlock(video_packet_queue.Mutex);
             std::unique_lock<std::mutex> alock(audio_packet_queue.Mutex);
             if((video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->num)<=(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->num)){

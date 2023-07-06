@@ -51,6 +51,22 @@ class packetQueue{
         std::mutex Mutex;
         std::condition_variable cond;
         int64_t curr_decode_pos=0;
+        
+
+        std::shared_ptr<myAVPacket> get_curr_pkt(){return pkts_ptr[curr_decode_pos];}
+        int64_t get_curr_id(){return pkts_ptr[curr_decode_pos]->id_in_queue;}
+        int64_t get_curr_num(){return pkts_ptr[curr_decode_pos]->num;}
+        int64_t get_curr_dts(){return pkts_ptr[curr_decode_pos]->mypkt.dts;}
+        int get_idx(){return pkts_ptr[curr_decode_pos]->mypkt.stream_index;}
+        bool is_curr_received(){return pkts_ptr[curr_decode_pos]->is_recived;}
+        int get_curr_flag(){return pkts_ptr[curr_decode_pos]->mypkt.flags;}
+        int64_t get_pkt_count(){return pkts_ptr.size();}
+        int64_t get_curr_pos(){return curr_decode_pos;}
+        void set_curr_pos(int64_t pos){
+            if(pos<0)curr_decode_pos=0;
+            else if(pos>=get_pkt_count())curr_decode_pos=get_pkt_count()-1;
+            else curr_decode_pos=pos;
+        }
 };
 
 extern packetQueue video_packet_queue;

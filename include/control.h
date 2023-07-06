@@ -51,7 +51,7 @@ extern int64_t s_video_play_time;
 
 void pause();
 void action();
-void seek_callback(int stream_idx,int64_t&id);
+void seek_callback(int stream_idx,int64_t id);
 void seek_handle();
 
 extern std::vector<std::pair<int,int64_t>> num_mapping_id_in_queue;

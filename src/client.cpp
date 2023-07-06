@@ -94,9 +94,6 @@ int main(int argc, char* argv[]) {
 
 
 
-    int64_t aaa;
-    RECV_ALL(aaa);
-
     Video video(v_idx,&v_p_codec_par,v_timebase_in_ms,a_idx,&a_p_codec_par,a_timebase_in_ms);
 
 

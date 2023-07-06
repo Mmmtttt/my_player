@@ -103,33 +103,31 @@ int main(int argc, char* argv[]) {
     send_all(accept_socket,(const char *)video.a_p_codec_par->extradata,video.a_p_codec_par->extradata_size);
     SEND_ALL(video.a_timebase_in_ms);
 
-    int64_t v_size=video_packet_queue.pkts_ptr.size(),a_size=audio_packet_queue.pkts_ptr.size();
+    int64_t v_size=video_packet_queue.get_pkt_count(),a_size=audio_packet_queue.get_pkt_count();
     SEND_ALL(v_size);
     SEND_ALL(a_size);
 
-    int64_t aaa=123456789;
-    SEND_ALL(aaa);
 
     video.~Video();
 
     auto vq=&video_packet_queue;  //调试用到
     auto aq=&audio_packet_queue;
-    video_packet_queue.curr_decode_pos=0;
-    audio_packet_queue.curr_decode_pos=0;
+    video_packet_queue.set_curr_pos(0);
+    audio_packet_queue.set_curr_pos(0);
 
-    while(video_packet_queue.curr_decode_pos+audio_packet_queue.curr_decode_pos<v_size+a_size-2){
+    while(video_packet_queue.get_curr_pos()+audio_packet_queue.get_curr_pos()<v_size+a_size-2){
 
-        if((video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->num)<=(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->num)){
+        if((video_packet_queue.get_curr_num())<=(audio_packet_queue.get_curr_num())){
             std::unique_lock<std::mutex>(video_packet_queue.Mutex);
-            SEND_ALL(video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size);
-            SEND_ALL(*video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]);
+            SEND_ALL(video_packet_queue.get_curr_pkt()->size);
+            SEND_ALL(*video_packet_queue.get_curr_pkt());
 
             video_packet_queue.curr_decode_pos++;
         }
         else{
             std::unique_lock<std::mutex>(audio_packet_queue.Mutex);
-            SEND_ALL(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->size);
-            SEND_ALL(*audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]);
+            SEND_ALL(audio_packet_queue.get_curr_pkt()->size);
+            SEND_ALL(*audio_packet_queue.get_curr_pkt());
 
             audio_packet_queue.curr_decode_pos++;
         }
@@ -138,8 +136,8 @@ int main(int argc, char* argv[]) {
     }
     
 
-    video_packet_queue.curr_decode_pos=0;
-    audio_packet_queue.curr_decode_pos=0;
+    video_packet_queue.set_curr_pos(0);
+    audio_packet_queue.set_curr_pos(0);
 
     std::thread t0([&]{
         while(1){
@@ -150,35 +148,37 @@ int main(int argc, char* argv[]) {
     
 
     while(1){
-        while(video_packet_queue.curr_decode_pos+audio_packet_queue.curr_decode_pos<v_size+a_size-2){
-            SDL_Delay(30);
+        while(video_packet_queue.get_curr_pos()+audio_packet_queue.get_curr_pos()<v_size+a_size-2){
+            //SDL_Delay(30);
             std::unique_lock<std::mutex> vlock(video_packet_queue.Mutex);
             std::unique_lock<std::mutex> alock(audio_packet_queue.Mutex);
-            if((video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->num)<=(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->num)){
-                if(video_packet_queue.curr_decode_pos>=v_size)break;
-                if(video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->is_sended)continue;
-                SEND_ALL(video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size);
-                SEND_ALL(*video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]);
+            if((video_packet_queue.get_curr_num())<=(audio_packet_queue.get_curr_num())){
+                if(video_packet_queue.get_curr_pos()>=v_size)break;
+                std::shared_ptr<myAVPacket> temp=video_packet_queue.get_curr_pkt();
+                if(temp->is_sended)continue;
                 
-                send_all(accept_socket,(const char *)video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->mypkt.data,video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size);
-                video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->is_sended=true;
+                SEND_ALL(temp->size);
+                SEND_ALL(*temp);
+                
+                send_all(accept_socket,(const char *)temp->mypkt.data,temp->size);
+                
+                temp->is_sended=true;
                 video_packet_queue.curr_decode_pos++;
-                if(video_packet_queue.curr_decode_pos>=v_size)video_packet_queue.curr_decode_pos=v_size-1;
-                //std::cout<<"video packet "<<video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->id_in_queue<<" sended"<<std::endl;
+                if(video_packet_queue.curr_decode_pos>=v_size)video_packet_queue.set_curr_pos(v_size-1);
             }
             else{
-                if(audio_packet_queue.curr_decode_pos>=a_size)break;
-                if(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->is_sended)continue;
-                SEND_ALL(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->size);
-                SEND_ALL(*audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]);
+                if(audio_packet_queue.get_curr_pos()>=a_size)break;
+                std::shared_ptr<myAVPacket> temp=audio_packet_queue.get_curr_pkt();
+                if(temp->is_sended)continue;
+
+                SEND_ALL(temp->size);
+                SEND_ALL(*temp);
                 
-                send_all(accept_socket,(const char *)audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->mypkt.data,audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->size);
-                audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->is_sended=true;
+                send_all(accept_socket,(const char *)temp->mypkt.data,temp->size);
+                temp->is_sended=true;
                 audio_packet_queue.curr_decode_pos++;
-                if(audio_packet_queue.curr_decode_pos>=a_size)audio_packet_queue.curr_decode_pos=a_size-1;
-                //std::cout<<"audio packet "<<audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->id_in_queue<<" sended"<<std::endl;
+                if(audio_packet_queue.curr_decode_pos>=a_size)audio_packet_queue.set_curr_pos(a_size-1);
             }
-            //std::cout<<"packet "<<video_packet_queue.curr_decode_pos+audio_packet_queue.curr_decode_pos-1<<" sended"<<std::endl;
         }
         std::cout<<"send done . enter any key to close"<<std::endl;
     }

@@ -39,8 +39,8 @@ class packetQueue{
             }
             std::cout<<"packet queue resize "<<size<<std::endl;
         }
-        void insert(std::shared_ptr<myAVPacket> pkt_ptr);
-        void insert(int64_t pos, char* data);
+        bool insert(std::shared_ptr<myAVPacket> pkt_ptr);
+        bool insert(int64_t pos, char* data);
 
         int packet_queue_push(std::shared_ptr<myAVPacket> pkt_ptr);
         int packet_queue_pop(std::shared_ptr<myAVPacket>& pkt_ptr, int block);

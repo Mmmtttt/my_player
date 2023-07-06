@@ -9,9 +9,10 @@ int packetQueue::packet_queue_push(std::shared_ptr<myAVPacket> pkt_ptr)
 
     size += pkt_ptr->mypkt.size;
     pkts_ptr.push_back(pkt_ptr);
-    lock.unlock();
-    cond.notify_one();
     pkt_ptr->is_recived=false;
+    lock.unlock();
+    cond.notify_all();
+    
     
     return 0;
 }
@@ -47,30 +48,35 @@ int packetQueue::packet_queue_pop(std::shared_ptr<myAVPacket>& pkt_ptr, int bloc
     return ret;
 }
 
-void packetQueue::insert(std::shared_ptr<myAVPacket> pkt_ptr){
-    std::unique_lock<std::mutex> lock(Mutex);
+bool packetQueue::insert(std::shared_ptr<myAVPacket> pkt_ptr){
+    //std::unique_lock<std::mutex> lock(Mutex);
     if(pkt_ptr->id_in_queue>=pkts_ptr.size()||pkt_ptr->id_in_queue<0)
-        throw std::runtime_error("queue insert out of range");
+        return false;
     pkts_ptr[pkt_ptr->id_in_queue]=pkt_ptr;
     size+=pkt_ptr->mypkt.size;
     pkt_ptr->is_recived=true;
-    lock.unlock();
+    //lock.unlock();
     cond.notify_all();
+    return true;
 }
 
-void packetQueue::insert(int64_t pos, char* data){
+bool packetQueue::insert(int64_t pos, char* data){
     std::unique_lock<std::mutex> lock(Mutex);
     if(pos>=pkts_ptr.size()||pos<0)
-        throw std::runtime_error("queue insert out of range");
+        return false;
     pkts_ptr[pos]->mypkt.data=(uint8_t*)data;
     pkts_ptr[pos]->is_recived=true;
     lock.unlock();
     cond.notify_all();
+    return true;
 }
 
 void packetQueue::seek(int64_t& timeshaft,double timebase){
+    static std::mutex seek_Mutex;
     std::unique_lock<std::mutex> lock(Mutex);
-
+    std::unique_lock<std::mutex> seek_lock(seek_Mutex);
+    
+    pause();
     int64_t dts=pkts_ptr[curr_decode_pos]->mypkt.dts*timebase;
 
     if(timeshaft>dts){
@@ -81,11 +87,11 @@ void packetQueue::seek(int64_t& timeshaft,double timebase){
             dts=pkts_ptr[curr_decode_pos]->mypkt.dts*timebase;
         }
         if(!pkts_ptr[curr_decode_pos]->is_recived){
-            pause();
-            seek_callback(pkts_ptr[curr_decode_pos]->num);
-            cond.wait(lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});
+            //pause();
+            seek_callback(pkts_ptr[0]->mypkt.stream_index,pkts_ptr[curr_decode_pos]->id_in_queue);
+            cond.wait(seek_lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});
             //lock.unlock();while(!pkts_ptr[curr_decode_pos]->is_recived){SDL_Delay(1);}lock.lock();
-            action();
+            //action();
         }
         
     }
@@ -97,13 +103,16 @@ void packetQueue::seek(int64_t& timeshaft,double timebase){
             dts=pkts_ptr[curr_decode_pos]->mypkt.dts*timebase;
         }
         if(!pkts_ptr[curr_decode_pos]->is_recived){
-            pause();
-            seek_callback(pkts_ptr[curr_decode_pos]->num);
-            cond.wait(lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});
+            //pause();
+            seek_callback(pkts_ptr[0]->mypkt.stream_index,pkts_ptr[curr_decode_pos]->id_in_queue);
+            cond.wait(seek_lock, [&]{ return pkts_ptr[curr_decode_pos]->is_recived;});
             //lock.unlock();while(!pkts_ptr[curr_decode_pos]->is_recived){SDL_Delay(1);}lock.lock();
-            action();
+            //action();
         }
     }
     timeshaft=pkts_ptr[curr_decode_pos]->mypkt.dts*timebase;
+    
+    seek_lock.unlock();
     lock.unlock();
+    action();
 }

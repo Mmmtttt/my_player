@@ -29,7 +29,7 @@ SOCKET listen_socket;
 sockaddr_in serverService;
 SOCKET accept_socket;
 
-std::map<int64_t,std::pair<int,int64_t>> num_mapping_id_in_queue;
+std::vector<std::pair<int,int64_t>> num_mapping_id_in_queue;
 
 
 int main(int argc, char* argv[]) {
@@ -137,23 +137,26 @@ int main(int argc, char* argv[]) {
             temp->mypkt.data=(uint8_t *)data;
             temp->mypkt.buf=(AVBufferRef *)buf;
 
+            bool ret;
             if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
                 temp->is_recived=true;
-                video_packet_queue.insert(temp);
+                ret=video_packet_queue.insert(temp);
                 
             }
             else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
                 temp->is_recived=true;
-                audio_packet_queue.insert(temp);
+                ret=audio_packet_queue.insert(temp);
                 
             }
+            if(!ret)return;
+            std::cout<<"receive packet "<<temp->num<<std::endl;
         }
-        return 0;
+        return;
     });
     t.detach();
 
     video.play();
-    std::cout<<"1"<<std::endl;
+
 
     return 0;
 }

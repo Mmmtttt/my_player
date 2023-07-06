@@ -31,7 +31,7 @@ link_directories (
 
 
 # 添加可执行文件生成
-add_executable(MyPlayer ${SOURCES} main.cpp)
+add_executable(MyPlayer ${SOURCES} main.cpp src/win_net.cpp)
 add_executable(serverMyPlayer ${SOURCES} src/server.cpp src/win_net.cpp)
 add_executable(clientMyPlayer ${SOURCES} src/client.cpp src/win_net.cpp)
 

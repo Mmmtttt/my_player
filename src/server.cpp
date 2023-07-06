@@ -28,7 +28,7 @@ SOCKET accept_socket;
 SOCKET client_socket;
 sockaddr_in clientService;
 
-std::map<int64_t,std::pair<int,int64_t>> num_mapping_id_in_queue;
+std::vector<std::pair<int,int64_t>> num_mapping_id_in_queue;
 
 
 int main(int argc, char* argv[]) {
@@ -112,29 +112,28 @@ int main(int argc, char* argv[]) {
 
     video.~Video();
 
-    // auto vq=&video_packet_queue;  //调试用到
-    // auto aq=&audio_packet_queue;
+    auto vq=&video_packet_queue;  //调试用到
+    auto aq=&audio_packet_queue;
     video_packet_queue.curr_decode_pos=0;
     audio_packet_queue.curr_decode_pos=0;
 
     while(video_packet_queue.curr_decode_pos+audio_packet_queue.curr_decode_pos<v_size+a_size-2){
-        
+
         if((video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->num)<=(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->num)){
             std::unique_lock<std::mutex>(video_packet_queue.Mutex);
             SEND_ALL(video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size);
             SEND_ALL(*video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]);
-            num_mapping_id_in_queue[video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->num]=std::pair<int,int64_t>(0,video_packet_queue.curr_decode_pos);
-            
+
             video_packet_queue.curr_decode_pos++;
         }
         else{
             std::unique_lock<std::mutex>(audio_packet_queue.Mutex);
             SEND_ALL(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->size);
             SEND_ALL(*audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]);
-            num_mapping_id_in_queue[video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->num]=std::pair<int,int64_t>(1,audio_packet_queue.curr_decode_pos);
-            
+
             audio_packet_queue.curr_decode_pos++;
         }
+        
 
     }
     
@@ -145,30 +144,42 @@ int main(int argc, char* argv[]) {
     std::thread t0([&]{
         while(1){
             seek_handle();
-            auto aq=&audio_packet_queue;
-            auto vq=&video_packet_queue;
+            //std::this_thread::sleep_for()
         }
     });
     
 
-    for(int i=0;i<v_size+a_size-2;i++){
-        //SDL_Delay(1000);
+    while(1){
+    while(video_packet_queue.curr_decode_pos+audio_packet_queue.curr_decode_pos<v_size+a_size-2){
+        //SDL_Delay(30);
+        std::unique_lock<std::mutex> vlock(video_packet_queue.Mutex);
+        std::unique_lock<std::mutex> alock(audio_packet_queue.Mutex);
         if((video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->num)<=(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->num)){
+            if(video_packet_queue.curr_decode_pos>=v_size)break;
+            if(video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->is_sended)continue;
             SEND_ALL(video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size);
             SEND_ALL(*video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]);
             
             send_all(accept_socket,(const char *)video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->mypkt.data,video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size);
+            video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->is_sended=true;
             video_packet_queue.curr_decode_pos++;
+            if(video_packet_queue.curr_decode_pos>=v_size)video_packet_queue.curr_decode_pos=v_size-1;
+            std::cout<<"video packet "<<video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->id_in_queue<<" sended"<<std::endl;
         }
         else{
+            if(audio_packet_queue.curr_decode_pos>=a_size)break;
+            if(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->is_sended)continue;
             SEND_ALL(audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->size);
             SEND_ALL(*audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]);
             
             send_all(accept_socket,(const char *)audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->mypkt.data,audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->size);
+            audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->is_sended=true;
             audio_packet_queue.curr_decode_pos++;
+            if(audio_packet_queue.curr_decode_pos>=a_size)audio_packet_queue.curr_decode_pos=a_size-1;
+            std::cout<<"audio packet "<<audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->id_in_queue<<" sended"<<std::endl;
         }
-        std::cout<<"packet "<<video_packet_queue.curr_decode_pos+audio_packet_queue.curr_decode_pos-1<<" sended"<<std::endl;
-    }
+        //std::cout<<"packet "<<video_packet_queue.curr_decode_pos+audio_packet_queue.curr_decode_pos-1<<" sended"<<std::endl;
+    }}
     SDL_Delay(1000000);
     std::cout<<"send done . enter any key to close"<<std::endl;
     int a;

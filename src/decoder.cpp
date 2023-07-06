@@ -57,40 +57,32 @@ void videoDecoder::get_Packet(){
     std::shared_ptr<myAVPacket> temp;
     while(1){
         video_packet_queue.packet_queue_pop(temp,1);
-        // 检查包是否在播放时间之前，如果是，则将其跳过
-        // if(p_codec_ctx->time_base.num==0&&p_codec_ctx->time_base.den==1){
-        //     s_video_play_time=temp->mypkt.pts*1000;
-        // }
-        // else if(p_codec_ctx->time_base.num==0&&p_codec_ctx->time_base.den==2){
-        //     s_video_play_time=temp->mypkt.pts * av_q2d(p_codec_ctx->time_base);
-        // }
-        // else{
-            s_video_play_time=temp->mypkt.dts * timebase_in_ms;
-            duration=temp->mypkt.duration * timebase_in_ms;
-        // }
-        // std::cout<<p_codec_ctx->time_base.den<<" "<<p_codec_ctx->time_base.num<<std::endl;
-        // std::cout<<temp->mypkt.pts<<std::endl;
+        
         auto end = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
         time_shaft+=(elapsed.count()-std::max(a_last_time,v_last_time))*speed;//时间轴，是一次
         v_last_time=elapsed.count();
 
-        //std::cout<<"video: "<<time_shaft<<" - "<<s_video_play_time<<" = "<<time_shaft-s_video_play_time<<std::endl;
+
+        s_video_play_time=temp->mypkt.dts * timebase_in_ms;
+        duration=temp->mypkt.duration * timebase_in_ms;
+
         int64_t diff=time_shaft-s_video_play_time;
         if(Video_Delay_in_Range(diff))break;   
         else if (Video_Delay_Behind(diff))
         {
-            //avcodec_flush_buffers(p_codec_ctx);
             continue;
         }
         else if(Video_Delay_Advanced(diff))
         {
-            //avcodec_flush_buffers(p_codec_ctx);
             video_packet_queue.curr_decode_pos=video_packet_queue.curr_decode_pos-2;
             continue;
         }
-        else if(Video_Should_Seek(diff)){video_packet_queue.seek(time_shaft,timebase_in_ms);avcodec_flush_buffers(p_codec_ctx);}
+        else if(Video_Should_Seek(diff)){
+            video_packet_queue.seek(time_shaft,timebase_in_ms);
+            avcodec_flush_buffers(p_codec_ctx);
+        }
     }
     
 

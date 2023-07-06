@@ -141,15 +141,15 @@ int main(int argc, char* argv[]) {
             if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
                 temp->is_recived=true;
                 ret=video_packet_queue.insert(temp);
-                
+                //std::cout<<"video receive packet "<<temp->id_in_queue<<std::endl;
             }
             else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
                 temp->is_recived=true;
                 ret=audio_packet_queue.insert(temp);
-                
+                //std::cout<<"audio receive packet "<<temp->id_in_queue<<std::endl;
             }
             if(!ret)return;
-            std::cout<<"receive packet "<<temp->num<<std::endl;
+            
         }
         return;
     });

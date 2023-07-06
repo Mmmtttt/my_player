@@ -3,31 +3,29 @@
 #include "packetQueue.h"
 
 void pause(){
-    if(s_playing_pause)return;
-    else{
-        s_playing_pause=!s_playing_pause;
-        auto end = std::chrono::high_resolution_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        v_last_time=elapsed.count();
-        a_last_time=elapsed.count();
-        
-        SDL_PauseAudio(1);
-        printf("player %s\n", s_playing_pause ? "pause" : "continue");
-    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    v_last_time=elapsed.count();
+    a_last_time=elapsed.count();
+    
+    if(!s_playing_pause)SDL_PauseAudio(1);
+    s_playing_pause=true;
+    printf("player %s\n", s_playing_pause ? "pause" : "continue");
+    
 }
 
 void action(){
-    if(!s_playing_pause)return;
-    else{
-        s_playing_pause=!s_playing_pause;
-        auto end = std::chrono::high_resolution_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        v_last_time=elapsed.count();
-        a_last_time=elapsed.count();
-        
-        SDL_PauseAudio(0);
-        printf("player %s\n", s_playing_pause ? "pause" : "continue");
-    }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    v_last_time=elapsed.count();
+    a_last_time=elapsed.count();
+    
+    if(s_playing_pause)SDL_PauseAudio(0);
+    s_playing_pause=false;
+    printf("player %s\n", s_playing_pause ? "pause" : "continue");
+
 }
 
 void seek_callback(int stream_idx,int64_t &id){
@@ -89,8 +87,9 @@ void seek_handle()
         SEND_ALL(*audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]);
         
         send_all(accept_socket,(const char *)audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->mypkt.data,audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->size);
+        std::cout<<"call back   audio packet "<<audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->id_in_queue<<" sended"<<std::endl;
         audio_packet_queue.curr_decode_pos++;
-        std::cout<<"call back   audio packet "<<audio_packet_queue.pkts_ptr[audio_packet_queue.curr_decode_pos]->num<<" sended"<<std::endl;
+        
     }
     else if(stream_idx==0){
         std::unique_lock<std::mutex> lock(video_packet_queue.Mutex);
@@ -100,8 +99,9 @@ void seek_handle()
         SEND_ALL(*video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]);
         
         send_all(accept_socket,(const char *)video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->mypkt.data,video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->size);
+        std::cout<<"call back   video packet "<<video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->id_in_queue<<" sended"<<std::endl;
         video_packet_queue.curr_decode_pos++;
-        std::cout<<"call back   video packet "<<video_packet_queue.pkts_ptr[video_packet_queue.curr_decode_pos]->num<<" sended"<<std::endl;
+        
     }
     
 }

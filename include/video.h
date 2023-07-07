@@ -40,7 +40,7 @@ public:
     std::string filename;
 
     std::unique_ptr<videoDecoder> v_decoder;
-    std::unique_ptr<audioDecoder> a_decoder;
+    std::shared_ptr<audioDecoder> a_decoder;
 
     SDL_Event sdl_event;
 

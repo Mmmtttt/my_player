@@ -70,14 +70,15 @@ Video::Video(const std::string& filename):filename(filename)
         avformat_close_input(&p_fmt_ctx);
         throw std::runtime_error("create v_decoder failed\n");
     } 
-    try{a_decoder=std::make_unique<audioDecoder>(a_p_codec_par, a_idx,a_timebase_in_ms);}
+    
+    try{static_a_decoder=std::make_shared<audioDecoder>(a_p_codec_par, a_idx,a_timebase_in_ms);}
     catch(const std::exception& e)
     {
         std::cout<<e.what()<<std::endl;
         avformat_close_input(&p_fmt_ctx);
         throw std::runtime_error("create a_decoder failed\n");
     }
-    // static_a_decoder=a_decoder;
+    a_decoder=static_a_decoder;
     
 //std::cout<<"done2"<<std::endl;
     
@@ -109,13 +110,15 @@ Video::Video(int _v_idx,AVCodecParameters *_v_p_codec_par,double _v_timebase_in_
         avformat_close_input(&p_fmt_ctx);
         throw std::runtime_error("create v_decoder failed\n");
     } 
-    try{a_decoder=std::make_unique<audioDecoder>(a_p_codec_par, a_idx,a_timebase_in_ms);}
+    
+    try{static_a_decoder=std::make_unique<audioDecoder>(a_p_codec_par, a_idx,a_timebase_in_ms);}
     catch(const std::exception& e)
     {
         std::cout<<e.what()<<std::endl;
         avformat_close_input(&p_fmt_ctx);
         throw std::runtime_error("create a_decoder failed\n");
     }
+    a_decoder=static_a_decoder;
     filename=std::string("1.mp4");
 }
 

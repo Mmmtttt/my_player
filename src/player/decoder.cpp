@@ -47,7 +47,8 @@ Decoder::Decoder(AVCodecParameters *_p_codec_par,int _idx,double _timebase_in_ms
 
 Decoder::~Decoder()
 {
-    avcodec_free_context(&p_codec_ctx);
+    if(p_codec_ctx)avcodec_free_context(&p_codec_ctx);
+    std::cout<<"~Decoder"<<std::endl;
     //sws_freeContext(sws_ctx);
     //av_packet_unref(p_packet);
 }
@@ -333,7 +334,6 @@ audioDecoder::audioDecoder(AVCodecParameters *_p_codec_par,int _idx,double _time
     s_audio_param_src = s_audio_param_tgt;
     
 
-    static_a_decoder=std::make_shared<audioDecoder>(*this);
 
 }
 

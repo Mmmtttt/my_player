@@ -2,16 +2,16 @@ cmake_minimum_required(VERSION 3.0)
 project(MyPlayer)
 
 # 设置源代码目录
-set(SOURCES
+set(PLAYER
     #main.cpp
     #src/audio.cpp
-    src/decoder.cpp
-    src/frame.cpp
-    src/renderer.cpp
-    src/video.cpp
-    src/packetQueue.cpp
-    src/audio.cpp
-    src/control.cpp
+    src/player/decoder.cpp
+    src/player/frame.cpp
+    src/player/renderer.cpp
+    src/player/video.cpp
+    src/player/packetQueue.cpp
+    src/player/audio.cpp
+    src/player/control.cpp
     # 添加其他源文件
 )
 
@@ -31,9 +31,9 @@ link_directories (
 
 
 # 添加可执行文件生成
-add_executable(MyPlayer ${SOURCES} main.cpp src/win_net.cpp)
-add_executable(serverMyPlayer ${SOURCES} src/server.cpp src/win_net.cpp)
-add_executable(clientMyPlayer ${SOURCES} src/client.cpp src/win_net.cpp)
+add_executable(MyPlayer ${PLAYER} main.cpp src/connect/win_net.cpp)
+add_executable(serverMyPlayer ${PLAYER} src/connect/server.cpp src/connect/win_net.cpp)
+add_executable(clientMyPlayer ${PLAYER} src/connect/client.cpp src/connect/win_net.cpp)
 
 
 set_target_properties(MyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})

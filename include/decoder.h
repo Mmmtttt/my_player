@@ -11,6 +11,7 @@ extern packetQueue audio_packet_queue;
 
 class Decoder {
 public:
+    Decoder(){}
     Decoder(AVCodecParameters *p_codec_par,int idx,double timebase_in_ms);
     ~Decoder();
 

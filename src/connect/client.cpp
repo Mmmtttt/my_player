@@ -1,5 +1,6 @@
 #include "video.h"
 #include "win_net.h"
+#include "connect.h"
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iostream>
@@ -12,24 +13,23 @@
 // ... 客户端的其他FFmpeg代码在这里 ...
 
 
-std::chrono::_V2::system_clock::time_point start;
-int64_t time_shaft = 0;
-int64_t a_last_time = 0;
-int64_t v_last_time = 0;
-double speed = 1.0;
-bool s_playing_pause = false;
-bool s_playing_exit = false;
-int64_t s_audio_play_time = 0;
-int64_t s_video_play_time = 0;
+// std::chrono::_V2::system_clock::time_point start;
+// int64_t time_shaft = 0;
+// int64_t a_last_time = 0;
+// int64_t v_last_time = 0;
+// double speed = 1.0;
+// bool s_playing_pause = false;
+// bool s_playing_exit = false;
+// int64_t s_audio_play_time = 0;
+// int64_t s_video_play_time = 0;
 
 
-SOCKET client_socket;
-sockaddr_in clientService;
-SOCKET listen_socket;
-sockaddr_in serverService;
-SOCKET accept_socket;
+// SOCKET client_socket;
+// sockaddr_in clientService;
+// SOCKET listen_socket;
+// sockaddr_in serverService;
+// SOCKET accept_socket;
 
-std::vector<std::pair<int,int64_t>> num_mapping_id_in_queue;
 
 
 int main(int argc, char* argv[]) {
@@ -40,25 +40,27 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    client_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (client_socket == INVALID_SOCKET) {
-        std::cout << "Error at socket: " << WSAGetLastError() << "\n";
-        WSACleanup();
-        return 1;
-    }
+    // client_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    // if (client_socket == INVALID_SOCKET) {
+    //     std::cout << "Error at socket: " << WSAGetLastError() << "\n";
+    //     WSACleanup();
+    //     return 1;
+    // }
 
-    clientService;
-    clientService.sin_family = AF_INET;
-    clientService.sin_addr.s_addr = inet_addr("127.0.0.1");  // 服务器地址
-    clientService.sin_port = htons(12345);  // 同一端口
+    // clientService;
+    // clientService.sin_family = AF_INET;
+    // clientService.sin_addr.s_addr = inet_addr("127.0.0.1");  // 服务器地址
+    // clientService.sin_port = htons(12345);  // 同一端口
 
-    if (connect(client_socket, (SOCKADDR*)&clientService, sizeof(clientService)) == SOCKET_ERROR) {
-        std::cout << "Failed to connect.\n";
-        WSACleanup();
-        return 1;
-    }
+    // if (connect(client_socket, (SOCKADDR*)&clientService, sizeof(clientService)) == SOCKET_ERROR) {
+    //     std::cout << "Failed to connect.\n";
+    //     WSACleanup();
+    //     return 1;
+    // }
 
-    std::cout << "Connected to server.\n";
+    // std::cout << "Connected to server.\n";
+
+    Client client("127.0.0.1",12345);
 
     // ... 从服务器接收数据 ...
 
@@ -102,13 +104,9 @@ int main(int argc, char* argv[]) {
         std::shared_ptr<myAVPacket> temp=std::shared_ptr<myAVPacket>(new myAVPacket);
         int64_t size;
         RECV_ALL(size);
-        av_new_packet(&temp->mypkt, size);
-        AVBufferRef *buf=temp->mypkt.buf;
-        uint8_t *data=temp->mypkt.data;
         RECV_ALL(*temp);
-        //recv_all(client_socket,(char *)data,size);
-        temp->mypkt.data=data;
-        temp->mypkt.buf=buf;
+        temp->mypkt.data=NULL;
+        temp->mypkt.buf=NULL;
         temp->is_recived=false;
 
         if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){

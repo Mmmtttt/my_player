@@ -79,6 +79,9 @@ Video::Video(const std::string& filename):filename(filename)
         throw std::runtime_error("create a_decoder failed\n");
     }
     a_decoder=static_a_decoder;
+
+    video_packet_queue=&::video_packet_queue;
+    audio_packet_queue=&::audio_packet_queue;
     
 //std::cout<<"done2"<<std::endl;
     
@@ -89,6 +92,86 @@ Video::~Video()
     avformat_close_input(&p_fmt_ctx);
     
     avformat_network_deinit();
+}
+
+Video::Video(const std::string& _filename,packetQueue* _video_packet_queue,packetQueue* _audio_packet_queue):filename(_filename){
+    avformat_network_init();
+    //av_register_all();
+    // A1. 打开视频文件：读取文件头，将文件格式信息存储在"fmt context"中
+    int ret = avformat_open_input(&p_fmt_ctx, filename.c_str(), NULL, NULL);
+    if (ret != 0)
+    {
+        throw std::runtime_error("avformat_open_input() failed ");
+    }
+
+    // A2. 搜索流信息：读取一段视频文件数据，尝试解码，将取到的流信息填入pFormatCtx->streams
+    //     p_fmt_ctx->streams是一个指针数组，数组大小是pFormatCtx->nb_streams
+    ret = avformat_find_stream_info(p_fmt_ctx, NULL);
+    if (ret < 0)
+    {
+        avformat_close_input(&p_fmt_ctx);
+        throw std::runtime_error("avformat_find_stream_info() failed ");
+    }
+
+
+    // A3. 查找第一个视频流
+    v_idx = -1;
+    for (int i=0; i<p_fmt_ctx->nb_streams; i++)
+    {
+        if (p_fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+        {
+            v_idx = i;
+            printf("Find a video stream, index %d\n", v_idx);
+            // frame_rate = p_fmt_ctx->streams[i]->avg_frame_rate.num /
+            //              p_fmt_ctx->streams[i]->avg_frame_rate.den;
+            
+        }
+        else if(p_fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
+        {
+            a_idx = i;
+            printf("Find a audio stream, index %d\n", a_idx);
+            
+        }
+    }
+    if (v_idx == -1)
+    {
+        avformat_close_input(&p_fmt_ctx);
+        printf("Cann't find a video stream\n");
+    }if (a_idx == -1)
+    {
+        avformat_close_input(&p_fmt_ctx);
+        printf("Cann't find a audio stream\n");
+    }
+
+    v_p_codec_par = p_fmt_ctx->streams[v_idx]->codecpar;
+    a_p_codec_par = p_fmt_ctx->streams[a_idx]->codecpar;
+
+    v_timebase_in_ms =av_q2d(p_fmt_ctx->streams[v_idx]->time_base) * 1000;
+    a_timebase_in_ms =av_q2d(p_fmt_ctx->streams[a_idx]->time_base) * 1000;
+
+    video_packet_queue=_video_packet_queue;
+    audio_packet_queue=_audio_packet_queue;
+
+    int64_t num=0;
+    while(ret==0){
+        std::shared_ptr<myAVPacket> temp(new myAVPacket());
+        ret=av_read_frame(p_fmt_ctx, &temp->mypkt);
+        temp->size=temp->mypkt.size;
+        
+        num++;
+        temp->num=num;
+        if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
+            temp->id_in_queue=video_packet_queue->get_pkt_count();
+            video_packet_queue->packet_queue_push(temp);
+            temp->is_recived=true;
+        }
+            
+        else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
+            temp->id_in_queue=audio_packet_queue->get_pkt_count();
+            audio_packet_queue->packet_queue_push(temp);
+            temp->is_recived=true;
+        }
+    }
 }
 
 
@@ -102,6 +185,9 @@ Video::Video(int _v_idx,AVCodecParameters *_v_p_codec_par,double _v_timebase_in_
     v_idx=_v_idx;
     a_idx=_a_idx;
 
+
+    video_packet_queue=&::video_packet_queue;
+    audio_packet_queue=&::audio_packet_queue;
 
     try{v_decoder=std::make_unique<videoDecoder>(v_p_codec_par, v_idx ,v_timebase_in_ms);}
     catch(const std::exception& e)
@@ -146,16 +232,7 @@ void Video::play(){
         {
             if (sdl_event.key.keysym.sym == SDLK_SPACE)
             {
-                // // 用户按空格键，暂停/继续状态切换
-                // s_playing_pause = !s_playing_pause;
-                // auto end = std::chrono::high_resolution_clock::now();
-                // auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-                // v_last_time=elapsed.count();
-                // a_last_time=elapsed.count();
                 
-                // if(s_playing_pause)SDL_PauseAudio(1);
-                // else SDL_PauseAudio(0);
-                // printf("player %s\n", s_playing_pause ? "pause" : "continue");
                 if(s_playing_pause)action();
                 else pause();
             }

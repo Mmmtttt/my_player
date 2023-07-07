@@ -38,7 +38,7 @@ extern bool s_playing_exit;
 extern int64_t s_audio_play_time;         // 当前音频播放时间（毫秒）（解了当前包之后，应该处于的时间）
 extern int64_t s_video_play_time;
 
-//diff是 当前的时间轴time_shaft-当前正在播放的时间s_audio_play_time
+//diff是 当前的时间轴time_shaft-当前正在播放的时间s_audio_play_time或者s_video_play_time
 #define Video_Delay_in_Range(diff) -300<diff&&diff<300
 #define Video_Delay_Behind(diff) 300<=diff&&diff<=1000
 #define Video_Delay_Advanced(diff) -300>=diff&&diff>=-1000
@@ -54,7 +54,7 @@ void action();
 void seek_callback(int stream_idx,int64_t id);
 void seek_handle();
 
-extern std::vector<std::pair<int,int64_t>> num_mapping_id_in_queue;
+enum TYPE{SERVER,CLIENT};
 
 
 #endif

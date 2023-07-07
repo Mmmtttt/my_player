@@ -2,6 +2,23 @@
 #include "win_net.h"
 #include "packetQueue.h"
 
+std::chrono::_V2::system_clock::time_point start;
+int64_t time_shaft = 0;
+int64_t a_last_time = 0;
+int64_t v_last_time = 0;
+double speed = 1.0;
+bool s_playing_pause = false;
+bool s_playing_exit = false;
+int64_t s_audio_play_time = 0;
+int64_t s_video_play_time = 0;
+
+
+SOCKET listen_socket;
+sockaddr_in serverService;
+SOCKET accept_socket;
+SOCKET client_socket;
+sockaddr_in clientService;
+
 void pause(){
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -37,8 +54,8 @@ void seek_handle()
 {
     int stream_idx;
     int64_t id;
-    int ret=recv_all(accept_socket,(char*)&stream_idx,sizeof(stream_idx));
-    ret=recv_all(accept_socket,(char*)&id,sizeof(id));
+    int ret=recv_all(server_socket,(char*)&stream_idx,sizeof(stream_idx));
+    ret=recv_all(server_socket,(char*)&id,sizeof(id));
     if(ret<=0)return;
     
     
@@ -50,7 +67,7 @@ void seek_handle()
         SEND_ALL(temp->size);
         SEND_ALL(*temp);
         
-        send_all(accept_socket,(const char *)temp->mypkt.data,temp->size);
+        send_all(server_socket,(const char *)temp->mypkt.data,temp->size);
         std::cout<<"call back   audio packet "<<temp->id_in_queue<<" sended"<<std::endl;
         audio_packet_queue.curr_decode_pos++;
         
@@ -63,7 +80,7 @@ void seek_handle()
         SEND_ALL(temp->size);
         SEND_ALL(*temp);
         
-        send_all(accept_socket,(const char *)temp->mypkt.data,temp->size);
+        send_all(server_socket,(const char *)temp->mypkt.data,temp->size);
         std::cout<<"call back   video packet "<<temp->id_in_queue<<" sended"<<std::endl;
         video_packet_queue.curr_decode_pos++;
         

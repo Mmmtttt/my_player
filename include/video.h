@@ -8,11 +8,12 @@
 
 class Video {
 public:
+    Video(){}
     Video(const std::string& filename);
     ~Video();
 
     Video(int v_idx,AVCodecParameters *v_p_codec_par,double v_timebase_in_ms,int a_idx,AVCodecParameters *a_p_codec_par,double a_timebase_in_ms);
-
+    Video(const std::string& filename,packetQueue* video_packet_queue,packetQueue* audio_packet_queue);
 
     void play();
     void show_IFO(){av_dump_format(p_fmt_ctx, 0, filename.c_str(), 0);};
@@ -41,6 +42,9 @@ public:
 
     std::unique_ptr<videoDecoder> v_decoder;
     std::shared_ptr<audioDecoder> a_decoder;
+
+    packetQueue* video_packet_queue;
+    packetQueue* audio_packet_queue;
 
     SDL_Event sdl_event;
 

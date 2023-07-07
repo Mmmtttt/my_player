@@ -4,6 +4,7 @@
 #include <vector>
 #include "video.h"
 #include "win_net.h"
+#include "connect.h"
 
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -11,24 +12,8 @@
 // ... 服务器的其他FFmpeg代码在这里 ...
 
 
-std::chrono::_V2::system_clock::time_point start;
-int64_t time_shaft = 0;
-int64_t a_last_time = 0;
-int64_t v_last_time = 0;
-double speed = 1.0;
-bool s_playing_pause = false;
-bool s_playing_exit = false;
-int64_t s_audio_play_time = 0;
-int64_t s_video_play_time = 0;
 
 
-SOCKET listen_socket;
-sockaddr_in serverService;
-SOCKET accept_socket;
-SOCKET client_socket;
-sockaddr_in clientService;
-
-std::vector<std::pair<int,int64_t>> num_mapping_id_in_queue;
 
 
 int main(int argc, char* argv[]) {
@@ -41,39 +26,43 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    listen_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (listen_socket == INVALID_SOCKET) {
-        std::cout << "Error at socket: " << WSAGetLastError() << "\n";
-        WSACleanup();
-        return 1;
-    }
+    // listen_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    // if (listen_socket == INVALID_SOCKET) {
+    //     std::cout << "Error at socket: " << WSAGetLastError() << "\n";
+    //     WSACleanup();
+    //     return 1;
+    // }
 
-    serverService;
-    serverService.sin_family = AF_INET;
-    serverService.sin_addr.s_addr = INADDR_ANY;
-    serverService.sin_port = htons(12345);  // 选择一个端口
+    // serverService;
+    // serverService.sin_family = AF_INET;
+    // serverService.sin_addr.s_addr = INADDR_ANY;
+    // serverService.sin_port = htons(12345);  // 选择一个端口
 
-    if (bind(listen_socket, (SOCKADDR*)&serverService, sizeof(serverService)) == SOCKET_ERROR) {
-        std::cout << "bind() failed.\n";
-        closesocket(listen_socket);
-        WSACleanup();
-        return 1;
-    }
+    // if (bind(listen_socket, (SOCKADDR*)&serverService, sizeof(serverService)) == SOCKET_ERROR) {
+    //     std::cout << "bind() failed.\n";
+    //     closesocket(listen_socket);
+    //     WSACleanup();
+    //     return 1;
+    // }
 
-    if (listen(listen_socket, 1) == SOCKET_ERROR) {
-        std::cout << "Error listening on socket.\n";
-        closesocket(listen_socket);
-        WSACleanup();
-        return 1;
-    }
+    // if (listen(listen_socket, 1) == SOCKET_ERROR) {
+    //     std::cout << "Error listening on socket.\n";
+    //     closesocket(listen_socket);
+    //     WSACleanup();
+    //     return 1;
+    // }
 
-    accept_socket = accept(listen_socket, NULL, NULL);
-    if (accept_socket == INVALID_SOCKET) {
-        std::cout << "accept() failed: " << WSAGetLastError() << '\n';
-        closesocket(listen_socket);
-        WSACleanup();
-        return 1;
-    }
+    // accept_socket = accept(listen_socket, NULL, NULL);
+    // if (accept_socket == INVALID_SOCKET) {
+    //     std::cout << "accept() failed: " << WSAGetLastError() << '\n';
+    //     closesocket(listen_socket);
+    //     WSACleanup();
+    //     return 1;
+    // }
+
+
+    Server server(12345);
+    server.listenConnections();
 
     std::cout << "Client connected.\n";
 
@@ -90,17 +79,15 @@ int main(int argc, char* argv[]) {
     video.v_decoder->push_All_Packets(video.p_fmt_ctx);
 
     
-    std::cout<<"prepare ok"<<std::endl;
-    // send(accept_socket, (const char *)&video.v_idx,sizeof(video.v_idx),0);
-    // send(accept_socket, (const char *)video.a_p_codec_par, sizeof(*video.a_p_codec_par), 0);
+    //std::cout<<"prepare ok"<<std::endl;
     SEND_ALL(video.v_idx);
     SEND_ALL(*video.v_p_codec_par);
-    send_all(accept_socket,(const char *)video.v_p_codec_par->extradata,video.v_p_codec_par->extradata_size);
+    send_all(server_socket,(const char *)video.v_p_codec_par->extradata,video.v_p_codec_par->extradata_size);
     SEND_ALL(video.v_timebase_in_ms);
 
     SEND_ALL(video.a_idx);
     SEND_ALL(*video.a_p_codec_par);
-    send_all(accept_socket,(const char *)video.a_p_codec_par->extradata,video.a_p_codec_par->extradata_size);
+    send_all(server_socket,(const char *)video.a_p_codec_par->extradata,video.a_p_codec_par->extradata_size);
     SEND_ALL(video.a_timebase_in_ms);
 
     int64_t v_size=video_packet_queue.get_pkt_count(),a_size=audio_packet_queue.get_pkt_count();
@@ -160,7 +147,7 @@ int main(int argc, char* argv[]) {
                 SEND_ALL(temp->size);
                 SEND_ALL(*temp);
                 
-                send_all(accept_socket,(const char *)temp->mypkt.data,temp->size);
+                send_all(server_socket,(const char *)temp->mypkt.data,temp->size);
                 
                 temp->is_sended=true;
                 video_packet_queue.curr_decode_pos++;
@@ -174,7 +161,7 @@ int main(int argc, char* argv[]) {
                 SEND_ALL(temp->size);
                 SEND_ALL(*temp);
                 
-                send_all(accept_socket,(const char *)temp->mypkt.data,temp->size);
+                send_all(server_socket,(const char *)temp->mypkt.data,temp->size);
                 temp->is_sended=true;
                 audio_packet_queue.curr_decode_pos++;
                 if(audio_packet_queue.curr_decode_pos>=a_size)audio_packet_queue.set_curr_pos(a_size-1);

@@ -20,13 +20,13 @@ bool s_decode_finished = false;  // 解码完毕
 //static int s_audio_play_time = 0;         // 当前音频播放时间（毫秒）（解了当前包之后，应该处于的时间）
 float s_audio_playback_rate = 1.0; // 音频播放速率
 
- FF_AudioParams s_audio_param_src;
- FF_AudioParams s_audio_param_tgt;
+FF_AudioParams s_audio_param_src;
+FF_AudioParams s_audio_param_tgt;
 
 
 struct SwrContext *s_audio_swr_ctx;
 
-int audio_decode_frame(AVCodecContext *p_codec_ctx, std::shared_ptr<myAVPacket> p_packet_ptr, uint8_t *audio_buf, int buf_size)
+int audioDecoder::audio_decode_frame(std::shared_ptr<myAVPacket> p_packet_ptr, uint8_t *audio_buf, int buf_size)
 {
     if(s_playing_exit)exit(0);
 
@@ -199,11 +199,11 @@ exit:
 }
 
 
-void sdl_audio_callback(void *userdata, uint8_t *stream, int len)
+void audioDecoder::sdl_audio_callback(void *userdata, uint8_t *stream, int len)
 {
     if(s_playing_exit)exit(0);
 
-    AVCodecContext *p_codec_ctx = (AVCodecContext *)userdata;
+    //AVCodecContext *p_codec_ctx = (AVCodecContext *)userdata;
     int copy_len;           // 
     int get_size;           // 获取到解码后的音频数据大小
 
@@ -232,7 +232,7 @@ void sdl_audio_callback(void *userdata, uint8_t *stream, int len)
             while (1)
             {
                 // 1. 从队列中读出一包音频数据
-                if (audio_packet_queue.packet_queue_pop(p_packet_ptr, 1) <= 0)
+                if (static_a_decoder->audio_packet_queue->packet_queue_pop(p_packet_ptr, 1) <= 0)
                 {
                     if (s_input_finished)
                     {
@@ -266,13 +266,13 @@ void sdl_audio_callback(void *userdata, uint8_t *stream, int len)
                     continue;
                 }
                 else if(Audio_Delay_Advanced(diff)){
-                    audio_packet_queue.curr_decode_pos=audio_packet_queue.curr_decode_pos-2;
+                    static_a_decoder->audio_packet_queue->curr_decode_pos-=2;
                     continue;
                 }
-                else if(Audio_Should_Seek(diff)){audio_packet_queue.seek(time_shaft,static_a_decoder->timebase_in_ms);}
+                else if(Audio_Should_Seek(diff)){static_a_decoder->audio_packet_queue->seek(time_shaft,static_a_decoder->timebase_in_ms);}
             }
             // 解码并根据播放速率处理
-            s_audio_len = audio_decode_frame(p_codec_ctx, p_packet_ptr, s_audio_buf, sizeof(s_audio_buf)) / s_audio_playback_rate;
+            s_audio_len = static_a_decoder->audio_decode_frame(p_packet_ptr, s_audio_buf, sizeof(s_audio_buf)) / s_audio_playback_rate;
             s_tx_idx = 0;
             
         }
@@ -291,7 +291,7 @@ void sdl_audio_callback(void *userdata, uint8_t *stream, int len)
 
         
     }
-    if (audio_packet_queue.size == 0 && s_input_finished)
+    if (static_a_decoder->audio_packet_queue->size == 0 && s_input_finished)
     {
         s_decode_finished = true;
     }

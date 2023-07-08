@@ -79,6 +79,12 @@ Video::Video(const std::string& filename):filename(filename)
         throw std::runtime_error("create a_decoder failed\n");
     }
     a_decoder=static_a_decoder;
+
+    video_packet_queue=std::make_shared<packetQueue>();
+    audio_packet_queue=std::make_shared<packetQueue>();
+    v_decoder->video_packet_queue=video_packet_queue;
+    a_decoder->audio_packet_queue=audio_packet_queue;
+
     
 //std::cout<<"done2"<<std::endl;
     
@@ -120,7 +126,38 @@ Video::Video(int _v_idx,AVCodecParameters *_v_p_codec_par,double _v_timebase_in_
     }
     a_decoder=static_a_decoder;
     filename=std::string("1.mp4");
+
+    video_packet_queue=std::make_shared<packetQueue>();
+    audio_packet_queue=std::make_shared<packetQueue>();
+    v_decoder->video_packet_queue=video_packet_queue;
+    a_decoder->audio_packet_queue=audio_packet_queue;
 }
+
+
+void Video::push_All_Packets(){
+    int ret=0;
+    int64_t num=0;
+    while(ret==0){
+        std::shared_ptr<myAVPacket> temp(new myAVPacket());
+        ret=av_read_frame(p_fmt_ctx, &temp->mypkt);
+        temp->size=temp->mypkt.size;
+        
+        num++;
+        temp->num=num;
+        if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
+            temp->id_in_queue=video_packet_queue->pkts_ptr.size();
+            video_packet_queue->packet_queue_push(temp);
+            temp->is_recived=true;
+        }
+            
+        else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
+            temp->id_in_queue=audio_packet_queue->pkts_ptr.size();
+            audio_packet_queue->packet_queue_push(temp);
+            temp->is_recived=true;
+        }
+    }
+}
+
 
 
 

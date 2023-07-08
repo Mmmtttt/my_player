@@ -31,9 +31,8 @@ int main(int argc, char* argv[])
     else{filename=argv[1];}
     Video video(filename);
     
-    video.v_decoder->push_All_Packets(video.p_fmt_ctx);
-    auto aq=&audio_packet_queue;
-    auto vq=&video_packet_queue;
+    video.push_All_Packets();
+
     video.play();
 
 

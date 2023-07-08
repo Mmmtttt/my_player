@@ -6,8 +6,7 @@
 #include "packetQueue.h"
 #include <thread>
 
-extern packetQueue video_packet_queue;
-extern packetQueue audio_packet_queue;
+
 
 class Decoder {
 public:
@@ -15,8 +14,6 @@ public:
     ~Decoder();
 
      
-
-    void push_All_Packets(AVFormatContext*);
 
     AVCodecContext* p_codec_ctx = NULL; 
 
@@ -43,6 +40,8 @@ class videoDecoder:public Decoder{
 
         void get_Packet();
 
+        std::shared_ptr<packetQueue> video_packet_queue;
+
         std::unique_ptr<videoSdlRenderer> renderer;
         std::shared_ptr<videoFrame> frame;
         SwsContext* sws_ctx = NULL; 
@@ -56,14 +55,10 @@ class audioDecoder:public Decoder{
         audioDecoder(AVCodecParameters *_p_codec_par,int _idx,double timebase_in_ms);
         ~audioDecoder();
 
-        // int decode_One_frame();
-        // int present_One_frame();
-        // static void sdl_audio_callback(void *userdata, uint8_t *stream, int len);
+        static void sdl_audio_callback(void *userdata, uint8_t *stream, int len);
+        int audio_decode_frame(std::shared_ptr<myAVPacket> p_packet_ptr, uint8_t *audio_buf, int buf_size);
 
-        // std::unique_ptr<audioSdlRenderer> renderer;
-        // std::shared_ptr<audioFrame> frame;
-        //SwrContext *swr_ctx;
-        //double timebase_in_ms;
+        std::shared_ptr<packetQueue> audio_packet_queue;
 };
 
 extern std::shared_ptr<audioDecoder> static_a_decoder;

@@ -112,10 +112,10 @@ int main(int argc, char* argv[]) {
         temp->is_recived=false;
 
         if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
-            video_packet_queue.packet_queue_push(temp);
+            video.video_packet_queue->packet_queue_push(temp);
         }
         else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
-            audio_packet_queue.packet_queue_push(temp);
+            video.audio_packet_queue->packet_queue_push(temp);
         }
         
 
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     
 
     std::thread t([&]{
-        while(video_packet_queue.curr_decode_pos+audio_packet_queue.curr_decode_pos<v_size+a_size-2){
+        while(video.video_packet_queue->curr_decode_pos+video.audio_packet_queue->curr_decode_pos<v_size+a_size-2){
             std::shared_ptr<myAVPacket> temp=std::shared_ptr<myAVPacket>(new myAVPacket);
             int64_t size;
             RECV_ALL(size);
@@ -137,12 +137,12 @@ int main(int argc, char* argv[]) {
             bool ret;
             if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
                 temp->is_recived=true;
-                ret=video_packet_queue.insert(temp);
+                ret=video.video_packet_queue->insert(temp);
                 //std::cout<<"video receive packet "<<temp->id_in_queue<<std::endl;
             }
             else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
                 temp->is_recived=true;
-                ret=audio_packet_queue.insert(temp);
+                ret=video.audio_packet_queue->insert(temp);
                 //std::cout<<"audio receive packet "<<temp->id_in_queue<<std::endl;
             }
             if(!ret)return;

@@ -16,6 +16,7 @@ public:
 
     void play();
     void show_IFO(){av_dump_format(p_fmt_ctx, 0, filename.c_str(), 0);};
+    void push_All_Packets();
     
 
     AVFormatContext* p_fmt_ctx = NULL;
@@ -41,6 +42,8 @@ public:
 
     std::unique_ptr<videoDecoder> v_decoder;
     std::shared_ptr<audioDecoder> a_decoder;
+    std::shared_ptr<packetQueue> video_packet_queue;
+    std::shared_ptr<packetQueue> audio_packet_queue;
 
     SDL_Event sdl_event;
 

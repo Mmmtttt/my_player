@@ -9,7 +9,7 @@
       "stopAtEntry": false,
       "externalConsole": true,
       "cwd": "J:/transform/Homework/C++/my_player",
-      "program": "J:/transform/Homework/C++/my_player/clientMyplayer.exe",
+      "program": "J:/transform/Homework/C++/my_player/serverMyplayer.exe",
       "MIMode": "gdb",
       "miDebuggerPath": "",
       "setupCommands": [

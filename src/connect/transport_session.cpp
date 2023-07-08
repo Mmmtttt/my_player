@@ -15,9 +15,12 @@ Session::Session(std::string filename,SOCKET socket,TYPE type){
                 seek_handle();
             }
         });
+        int i=0;
         while(!close){
+            if(i>10)break;i++;
             send_Data();
         }
+        close=true;
         seek_handle_thread.join();
     }
     else if(type==CLIENT){

@@ -19,11 +19,13 @@ int main(int argc, char* argv[]) {
         std::cout << "Initialization error.\n";
         return 1;
     }
+    std::string IP;
+    std::cin>>IP;
 
     int port;
     std::cin>>port;
 
-    Client client("127.0.0.1",port);
+    Client client(IP,port);
     client.startConnection();
 
  

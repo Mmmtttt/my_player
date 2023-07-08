@@ -20,14 +20,14 @@ set(PLAYER
 
 # 设置头文件目录
 include_directories(include 
-${CMAKE_SOURCE_DIR}/libs_win/develop/ffmpeg-20181212/include 
+${CMAKE_SOURCE_DIR}/libs_win/develop/ffmpeg-n5.1-latest-win64-gpl-shared-5.1/include 
 ${CMAKE_SOURCE_DIR}/libs_win/develop/SDL2-2.0.9/include
 )
 
 # 添加 FFmpeg 库目录
 #link_directories(libs)
 link_directories (
-    ${CMAKE_SOURCE_DIR}/libs_win/develop/ffmpeg-20181212/lib 
+    ${CMAKE_SOURCE_DIR}/libs_win/develop/ffmpeg-n5.1-latest-win64-gpl-shared-5.1/lib 
     ${CMAKE_SOURCE_DIR}/libs_win/develop/SDL2-2.0.9/lib/x64
     ${CMAKE_SOURCE_DIR}/libs_win/runtime
     )

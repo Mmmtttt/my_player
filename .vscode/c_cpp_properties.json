@@ -5,7 +5,7 @@
       "includePath": [
         "${workspaceFolder}/**",
         "include",
-        "${workspaceFolder}/libs_win/develop/ffmpeg-20181212/include",
+        "${workspaceFolder}/libs_win/develop/ffmpeg-n5.1-latest-win64-gpl-shared-5.1/include",
         "${workspaceFolder}/libs_win/develop/SDL2-2.0.9/include"
       ],
       "compilerPath": "C:/mingw64/bin/g++.exe",

@@ -55,6 +55,7 @@ int packetQueue::packet_queue_pop(std::shared_ptr<myAVPacket>& pkt_ptr, int bloc
 bool packetQueue::insert(std::shared_ptr<myAVPacket> pkt_ptr){
     if(pkt_ptr->id_in_queue>=pkts_ptr.size()||pkt_ptr->id_in_queue<0)
         return false;
+    //pkts_ptr[pkt_ptr->id_in_queue].reset();
     pkts_ptr[pkt_ptr->id_in_queue]=pkt_ptr;
     size+=pkt_ptr->mypkt.size;
     pkt_ptr->is_recived=true;

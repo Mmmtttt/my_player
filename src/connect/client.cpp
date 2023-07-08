@@ -1,5 +1,6 @@
 #include "video.h"
 #include "win_net.h"
+#include "connect.h"
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <iostream>
@@ -12,24 +13,23 @@
 // ... 客户端的其他FFmpeg代码在这里 ...
 
 
-std::chrono::_V2::system_clock::time_point start;
-int64_t time_shaft = 0;
-int64_t a_last_time = 0;
-int64_t v_last_time = 0;
-double speed = 1.0;
-bool s_playing_pause = false;
-bool s_playing_exit = false;
-int64_t s_audio_play_time = 0;
-int64_t s_video_play_time = 0;
+// std::chrono::_V2::system_clock::time_point start;
+// int64_t time_shaft = 0;
+// int64_t a_last_time = 0;
+// int64_t v_last_time = 0;
+// double speed = 1.0;
+// bool s_playing_pause = false;
+// bool s_playing_exit = false;
+// int64_t s_audio_play_time = 0;
+// int64_t s_video_play_time = 0;
 
 
-SOCKET client_socket;
-sockaddr_in clientService;
-SOCKET listen_socket;
-sockaddr_in serverService;
-SOCKET accept_socket;
+// SOCKET client_socket;
+// sockaddr_in clientService;
+// SOCKET listen_socket;
+// sockaddr_in serverService;
+// SOCKET accept_socket;
 
-std::vector<std::pair<int,int64_t>> num_mapping_id_in_queue;
 
 
 int main(int argc, char* argv[]) {
@@ -40,119 +40,118 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    client_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (client_socket == INVALID_SOCKET) {
-        std::cout << "Error at socket: " << WSAGetLastError() << "\n";
-        WSACleanup();
-        return 1;
-    }
+    // client_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    // if (client_socket == INVALID_SOCKET) {
+    //     std::cout << "Error at socket: " << WSAGetLastError() << "\n";
+    //     WSACleanup();
+    //     return 1;
+    // }
 
-    clientService;
-    clientService.sin_family = AF_INET;
-    clientService.sin_addr.s_addr = inet_addr("127.0.0.1");  // 服务器地址
-    clientService.sin_port = htons(12345);  // 同一端口
+    // clientService;
+    // clientService.sin_family = AF_INET;
+    // clientService.sin_addr.s_addr = inet_addr("127.0.0.1");  // 服务器地址
+    // clientService.sin_port = htons(12345);  // 同一端口
 
-    if (connect(client_socket, (SOCKADDR*)&clientService, sizeof(clientService)) == SOCKET_ERROR) {
-        std::cout << "Failed to connect.\n";
-        WSACleanup();
-        return 1;
-    }
+    // if (connect(client_socket, (SOCKADDR*)&clientService, sizeof(clientService)) == SOCKET_ERROR) {
+    //     std::cout << "Failed to connect.\n";
+    //     WSACleanup();
+    //     return 1;
+    // }
 
-    std::cout << "Connected to server.\n";
+    // std::cout << "Connected to server.\n";
+
+    Client client("127.0.0.1",12345);
+    client.startConnection();
 
     // ... 从服务器接收数据 ...
 
-    int v_idx;
-    RECV_ALL(v_idx);
+    // int v_idx;
+    // RECV_ALL(v_idx);
 
 
-    AVCodecParameters v_p_codec_par;
-    RECV_ALL(v_p_codec_par);
-    v_p_codec_par.extradata=(uint8_t*)malloc(v_p_codec_par.extradata_size*sizeof(uint8_t));
-    recv_all(client_socket,(char *)v_p_codec_par.extradata,v_p_codec_par.extradata_size);
+    // AVCodecParameters v_p_codec_par;
+    // RECV_ALL(v_p_codec_par);
+    // v_p_codec_par.extradata=(uint8_t*)malloc(v_p_codec_par.extradata_size*sizeof(uint8_t));
+    // recv_all(client_socket,(char *)v_p_codec_par.extradata,v_p_codec_par.extradata_size);
 
-    double v_timebase_in_ms;
-    RECV_ALL(v_timebase_in_ms);
+    // double v_timebase_in_ms;
+    // RECV_ALL(v_timebase_in_ms);
 
     
     
-    int a_idx;
-    RECV_ALL(a_idx);
+    // int a_idx;
+    // RECV_ALL(a_idx);
 
-    AVCodecParameters a_p_codec_par;
-    RECV_ALL(a_p_codec_par);
-    a_p_codec_par.extradata=(uint8_t*)malloc(a_p_codec_par.extradata_size*sizeof(uint8_t));
-    recv_all(client_socket,(char *)a_p_codec_par.extradata,a_p_codec_par.extradata_size);
+    // AVCodecParameters a_p_codec_par;
+    // RECV_ALL(a_p_codec_par);
+    // a_p_codec_par.extradata=(uint8_t*)malloc(a_p_codec_par.extradata_size*sizeof(uint8_t));
+    // recv_all(client_socket,(char *)a_p_codec_par.extradata,a_p_codec_par.extradata_size);
     
-    double a_timebase_in_ms;
-    RECV_ALL(a_timebase_in_ms);
+    // double a_timebase_in_ms;
+    // RECV_ALL(a_timebase_in_ms);
 
 
-    int64_t v_size,a_size;
-    RECV_ALL(v_size);
-    RECV_ALL(a_size);
+    // int64_t v_size,a_size;
+    // RECV_ALL(v_size);
+    // RECV_ALL(a_size);
 
 
 
-    Video video(v_idx,&v_p_codec_par,v_timebase_in_ms,a_idx,&a_p_codec_par,a_timebase_in_ms);
+    // Video video(v_idx,&v_p_codec_par,v_timebase_in_ms,a_idx,&a_p_codec_par,a_timebase_in_ms);
 
 
-    int64_t bbb=0,c=0;
-    for(int64_t i=0;i<v_size+a_size-2;i++){
-        std::shared_ptr<myAVPacket> temp=std::shared_ptr<myAVPacket>(new myAVPacket);
-        int64_t size;
-        RECV_ALL(size);
-        av_new_packet(&temp->mypkt, size);
-        AVBufferRef *buf=temp->mypkt.buf;
-        uint8_t *data=temp->mypkt.data;
-        RECV_ALL(*temp);
-        //recv_all(client_socket,(char *)data,size);
-        temp->mypkt.data=data;
-        temp->mypkt.buf=buf;
-        temp->is_recived=false;
+    // int64_t bbb=0,c=0;
+    // for(int64_t i=0;i<v_size+a_size-2;i++){
+    //     std::shared_ptr<myAVPacket> temp=std::shared_ptr<myAVPacket>(new myAVPacket);
+    //     int64_t size;
+    //     RECV_ALL(size);
+    //     RECV_ALL(*temp);
+    //     temp->mypkt.data=NULL;
+    //     temp->mypkt.buf=NULL;
+    //     temp->is_recived=false;
 
-        if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
-            video.video_packet_queue->packet_queue_push(temp);
-        }
-        else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
-            video.audio_packet_queue->packet_queue_push(temp);
-        }
+        // if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
+        //     video_packet_queue.packet_queue_push(temp);
+        // }
+        // else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
+        //     audio_packet_queue.packet_queue_push(temp);
+        // }
         
 
-    }
+    // }
     
 
-    std::thread t([&]{
-        while(video.video_packet_queue->curr_decode_pos+video.audio_packet_queue->curr_decode_pos<v_size+a_size-2){
-            std::shared_ptr<myAVPacket> temp=std::shared_ptr<myAVPacket>(new myAVPacket);
-            int64_t size;
-            RECV_ALL(size);
-            av_new_packet(&temp->mypkt, size);
-            char *buf=(char *)temp->mypkt.buf,*data=(char *)temp->mypkt.data;
-            RECV_ALL(*temp);
-            recv_all(client_socket,(char *)data,size);
-            temp->mypkt.data=(uint8_t *)data;
-            temp->mypkt.buf=(AVBufferRef *)buf;
+    // std::thread t([&]{
+    //     while(video_packet_queue.curr_decode_pos+audio_packet_queue.curr_decode_pos<v_size+a_size-2){
+    //         std::shared_ptr<myAVPacket> temp=std::shared_ptr<myAVPacket>(new myAVPacket);
+    //         int64_t size;
+    //         RECV_ALL(size);
+    //         av_new_packet(&temp->mypkt, size);
+    //         char *buf=(char *)temp->mypkt.buf,*data=(char *)temp->mypkt.data;
+    //         RECV_ALL(*temp);
+    //         recv_all(client_socket,(char *)data,size);
+    //         temp->mypkt.data=(uint8_t *)data;
+    //         temp->mypkt.buf=(AVBufferRef *)buf;
 
-            bool ret;
-            if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
-                temp->is_recived=true;
-                ret=video.video_packet_queue->insert(temp);
-                //std::cout<<"video receive packet "<<temp->id_in_queue<<std::endl;
-            }
-            else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
-                temp->is_recived=true;
-                ret=video.audio_packet_queue->insert(temp);
-                //std::cout<<"audio receive packet "<<temp->id_in_queue<<std::endl;
-            }
-            if(!ret)return;
+            // bool ret;
+            // if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
+            //     temp->is_recived=true;
+            //     ret=video_packet_queue.insert(temp);
+            //     //std::cout<<"video receive packet "<<temp->id_in_queue<<std::endl;
+            // }
+            // else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
+            //     temp->is_recived=true;
+            //     ret=audio_packet_queue.insert(temp);
+            //     //std::cout<<"audio receive packet "<<temp->id_in_queue<<std::endl;
+            // }
+            // if(!ret)return;
             
-        }
-        return;
-    });
-    t.detach();
+    //     }
+    //     return;
+    // });
+    // t.detach();
 
-    video.play();
+    // video.play();
 
 
     return 0;

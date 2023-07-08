@@ -4,6 +4,7 @@
 #include <vector>
 #include "video.h"
 #include "win_net.h"
+#include "connect.h"
 
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -11,15 +12,6 @@
 // ... 服务器的其他FFmpeg代码在这里 ...
 
 
-std::chrono::_V2::system_clock::time_point start;
-int64_t time_shaft = 0;
-int64_t a_last_time = 0;
-int64_t v_last_time = 0;
-double speed = 1.0;
-bool s_playing_pause = false;
-bool s_playing_exit = false;
-int64_t s_audio_play_time = 0;
-int64_t s_video_play_time = 0;
 
 
 SOCKET listen_socket;
@@ -29,7 +21,6 @@ SOCKET client_socket;
 sockaddr_in clientService;
 
 std::vector<std::pair<int,int64_t>> num_mapping_id_in_queue;
-
 
 void seek_handle(Video*);
 
@@ -43,189 +34,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    listen_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (listen_socket == INVALID_SOCKET) {
-        std::cout << "Error at socket: " << WSAGetLastError() << "\n";
-        WSACleanup();
-        return 1;
-    }
-
-    serverService;
-    serverService.sin_family = AF_INET;
-    serverService.sin_addr.s_addr = INADDR_ANY;
-    serverService.sin_port = htons(12345);  // 选择一个端口
-
-    if (bind(listen_socket, (SOCKADDR*)&serverService, sizeof(serverService)) == SOCKET_ERROR) {
-        std::cout << "bind() failed.\n";
-        closesocket(listen_socket);
-        WSACleanup();
-        return 1;
-    }
-
-    if (listen(listen_socket, 1) == SOCKET_ERROR) {
-        std::cout << "Error listening on socket.\n";
-        closesocket(listen_socket);
-        WSACleanup();
-        return 1;
-    }
-
-    accept_socket = accept(listen_socket, NULL, NULL);
-    if (accept_socket == INVALID_SOCKET) {
-        std::cout << "accept() failed: " << WSAGetLastError() << '\n';
-        closesocket(listen_socket);
-        WSACleanup();
-        return 1;
-    }
-
-    std::cout << "Client connected.\n";
-
-    // ... 发送数据到客户端 ...
-
-    std::string filename;
-
-    if (argc < 2) {
-        std::cin>>filename;
-    }
-    else{filename=argv[1];}
-    Video video(filename);
-
-    video.push_All_Packets();
-
     
-    std::cout<<"prepare ok"<<std::endl;
-    // send(accept_socket, (const char *)&video.v_idx,sizeof(video.v_idx),0);
-    // send(accept_socket, (const char *)video.a_p_codec_par, sizeof(*video.a_p_codec_par), 0);
-    SEND_ALL(video.v_idx);
-    SEND_ALL(*video.v_p_codec_par);
-    send_all(accept_socket,(const char *)video.v_p_codec_par->extradata,video.v_p_codec_par->extradata_size);
-    SEND_ALL(video.v_timebase_in_ms);
-
-    SEND_ALL(video.a_idx);
-    SEND_ALL(*video.a_p_codec_par);
-    send_all(accept_socket,(const char *)video.a_p_codec_par->extradata,video.a_p_codec_par->extradata_size);
-    SEND_ALL(video.a_timebase_in_ms);
-
-    int64_t v_size=video.video_packet_queue->get_pkt_count(),a_size=video.audio_packet_queue->get_pkt_count();
-    SEND_ALL(v_size);
-    SEND_ALL(a_size);
-
-
-
-
-
-    video.video_packet_queue->set_curr_pos(0);
-    video.audio_packet_queue->set_curr_pos(0);
-
-    while(video.video_packet_queue->get_curr_pos()+video.audio_packet_queue->get_curr_pos()<v_size+a_size-2){
-
-        if((video.video_packet_queue->get_curr_num())<=(video.audio_packet_queue->get_curr_num())){
-            std::unique_lock<std::mutex>(video.video_packet_queue->Mutex);
-            SEND_ALL(video.video_packet_queue->get_curr_pkt()->size);
-            SEND_ALL(*video.video_packet_queue->get_curr_pkt());
-
-            video.video_packet_queue->curr_decode_pos++;
-        }
-        else{
-            std::unique_lock<std::mutex>(video.audio_packet_queue->Mutex);
-            SEND_ALL(video.audio_packet_queue->get_curr_pkt()->size);
-            SEND_ALL(*video.audio_packet_queue->get_curr_pkt());
-
-            video.audio_packet_queue->curr_decode_pos++;
-        }
-        
-
-    }
-    
-
-    video.video_packet_queue->set_curr_pos(0);
-    video.audio_packet_queue->set_curr_pos(0);
-
-    std::thread t0([&]{
-        while(1){
-            seek_handle(&video);
-            //std::this_thread::sleep_for()
-        }
-    });
-    
-
-    while(1){
-        while(video.video_packet_queue->get_curr_pos()+video.audio_packet_queue->get_curr_pos()<v_size+a_size-2){
-            //SDL_Delay(30);
-            std::unique_lock<std::mutex> vlock(video.video_packet_queue->Mutex);
-            std::unique_lock<std::mutex> alock(video.audio_packet_queue->Mutex);
-            if((video.video_packet_queue->get_curr_num())<=(video.audio_packet_queue->get_curr_num())){
-                if(video.video_packet_queue->get_curr_pos()>=v_size)break;
-                std::shared_ptr<myAVPacket> temp=video.video_packet_queue->get_curr_pkt();
-                if(temp->is_sended)continue;
-                
-                SEND_ALL(temp->size);
-                SEND_ALL(*temp);
-                
-                send_all(accept_socket,(const char *)temp->mypkt.data,temp->size);
-                
-                temp->is_sended=true;
-                video.video_packet_queue->curr_decode_pos++;
-                if(video.video_packet_queue->curr_decode_pos>=v_size)video.video_packet_queue->set_curr_pos(v_size-1);
-            }
-            else{
-                if(video.audio_packet_queue->get_curr_pos()>=a_size)break;
-                std::shared_ptr<myAVPacket> temp=video.audio_packet_queue->get_curr_pkt();
-                if(temp->is_sended)continue;
-
-                SEND_ALL(temp->size);
-                SEND_ALL(*temp);
-                
-                send_all(accept_socket,(const char *)temp->mypkt.data,temp->size);
-                temp->is_sended=true;
-                video.audio_packet_queue->curr_decode_pos++;
-                if(video.audio_packet_queue->curr_decode_pos>=a_size)video.audio_packet_queue->set_curr_pos(a_size-1);
-            }
-        }
-        std::cout<<"send done . enter any key to close"<<std::endl;
-    }
+    Server server(12345);
+    server.listenConnections();
 
     
     int a;
     std::cin>>a;
 
     return 0;
-
-}
-
-void seek_handle(Video* video)
-{
-    int stream_idx;
-    int64_t id;
-    int ret=recv_all(accept_socket,(char*)&stream_idx,sizeof(stream_idx));
-    ret=recv_all(accept_socket,(char*)&id,sizeof(id));
-    if(ret<=0)return;
-    
-    
-    if(stream_idx==1){
-        std::unique_lock<std::mutex> lock(video->audio_packet_queue->Mutex);
-        video->audio_packet_queue->set_curr_pos(id);
-
-        std::shared_ptr<myAVPacket> temp=video->audio_packet_queue->get_curr_pkt();
-        SEND_ALL(temp->size);
-        SEND_ALL(*temp);
-        
-        send_all(accept_socket,(const char *)temp->mypkt.data,temp->size);
-        std::cout<<"call back   audio packet "<<temp->id_in_queue<<" sended"<<std::endl;
-        video->audio_packet_queue->curr_decode_pos++;
-        
-    }
-    else if(stream_idx==0){
-        std::unique_lock<std::mutex> lock(video->video_packet_queue->Mutex);
-        video->video_packet_queue->set_curr_pos(id);
-
-        std::shared_ptr<myAVPacket> temp=video->video_packet_queue->get_curr_pkt();
-        SEND_ALL(temp->size);
-        SEND_ALL(*temp);
-        
-        send_all(accept_socket,(const char *)temp->mypkt.data,temp->size);
-        std::cout<<"call back   video packet "<<temp->id_in_queue<<" sended"<<std::endl;
-        video->video_packet_queue->curr_decode_pos++;
-        
-    }
-    
 }

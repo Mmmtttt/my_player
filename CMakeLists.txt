@@ -12,6 +12,9 @@ set(PLAYER
     src/player/packetQueue.cpp
     src/player/audio.cpp
     src/player/control.cpp
+    src/connect/win_net.cpp
+    src/connect/connect.cpp
+    src/connect/transport_session.cpp
     # 添加其他源文件
 )
 
@@ -31,9 +34,9 @@ link_directories (
 
 
 # 添加可执行文件生成
-add_executable(MyPlayer ${PLAYER} main.cpp src/connect/win_net.cpp)
-add_executable(serverMyPlayer ${PLAYER} src/connect/server.cpp src/connect/win_net.cpp)
-add_executable(clientMyPlayer ${PLAYER} src/connect/client.cpp src/connect/win_net.cpp)
+add_executable(MyPlayer ${PLAYER} main.cpp )
+add_executable(serverMyPlayer ${PLAYER} src/connect/server.cpp )
+add_executable(clientMyPlayer ${PLAYER} src/connect/client.cpp )
 
 
 set_target_properties(MyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})

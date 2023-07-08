@@ -306,4 +306,3 @@ audioDecoder::~audioDecoder(){
     SDL_CloseAudio();
     std::cout<<"aideoDecoder destoryed"<<std::endl;
 }
-

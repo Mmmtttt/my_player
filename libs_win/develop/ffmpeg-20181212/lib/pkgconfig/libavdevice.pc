@@ -5,9 +5,9 @@ includedir=${prefix}/include
 
 Name: libavdevice
 Description: FFmpeg device handling library
-Version: 60.2.101
+Version: 58.13.100
 Requires: 
-Requires.private: libavfilter >= 9.8.102, libswscale >= 7.3.100, libpostproc >= 57.2.100, libavformat >= 60.10.100, libavcodec >= 60.22.100, libswresample >= 4.11.100, libavutil >= 58.14.100
+Requires.private: libavfilter >= 7.110.100, libswscale >= 5.9.100, libavformat >= 58.76.100, libavcodec >= 58.134.100, libswresample >= 3.9.100, libavutil >= 56.70.100
 Conflicts:
 Libs: -L${libdir}  -lavdevice 
 Cflags: -I${includedir}

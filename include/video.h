@@ -44,8 +44,6 @@ public:
 
     std::unique_ptr<videoDecoder> v_decoder;
     std::shared_ptr<audioDecoder> a_decoder;
-    std::shared_ptr<packetQueue> video_packet_queue;
-    std::shared_ptr<packetQueue> audio_packet_queue;
 
     std::shared_ptr<packetQueue> video_packet_queue;
     std::shared_ptr<packetQueue> audio_packet_queue;
@@ -55,4 +53,3 @@ public:
 };
 
 #endif
-

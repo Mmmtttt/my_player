@@ -52,7 +52,7 @@ extern int64_t s_video_play_time;
 void pause();
 void action();
 void seek_callback(int stream_idx,int64_t id);
-void seek_handle();
+//void seek_handle();
 
 enum TYPE{SERVER,CLIENT};
 

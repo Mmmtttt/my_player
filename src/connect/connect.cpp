@@ -1,4 +1,5 @@
 #include "connect.h"
+#include "transport_session.h"
 
 Server::Server(int port) : port(port) {
 }
@@ -48,7 +49,7 @@ void Server::listenConnections() {
 
         std::cout << "Client connected.\n";
 
-        Connection* connection = new Connection(this, accept_socket);
+        Connection* connection = new Connection(accept_socket);
         connections.push_back(connection);
 
         std::thread t(&Connection::processRequest, connection);
@@ -56,9 +57,7 @@ void Server::listenConnections() {
     }
 }
 
-void Server::handleConnection(Connection* connection) {
-    // Handle the connection here
-}
+
 
 Client::Client(std::string serverIp, int serverPort) : serverIp(serverIp), serverPort(serverPort) {
 }
@@ -86,11 +85,10 @@ void Client::startConnection() {
         return;
     }
 
-    // Connection established
-    // Process the connection here
+    Session session("1.mp4",connect_socket,CLIENT);
 }
 
-Connection::Connection(Server* server, SOCKET socket) : server(server), socket(socket) {
+Connection::Connection(SOCKET socket) : socket(socket) {
 }
 
 Connection::~Connection() {
@@ -98,24 +96,5 @@ Connection::~Connection() {
 }
 
 void Connection::processRequest() {
-    // Process the request from the client
-    server->handleConnection(this);
-}
-
-SocketWrapper::SocketWrapper() {
-    socket = INVALID_SOCKET;
-}
-
-SocketWrapper::~SocketWrapper() {
-    if (socket != (SOCKET)(~0)) {
-        closesocket(socket);
-    }
-}
-
-int SocketWrapper::sendData(const char* buffer, int len) {
-    return send(socket, buffer, len, 0);
-}
-
-int SocketWrapper::receiveData(char* buffer, int len) {
-    return recv(socket, buffer, len, 0);
+    Session session("1.mp4",socket,SERVER);
 }

@@ -69,7 +69,5 @@ class packetQueue{
         }
 };
 
-extern packetQueue video_packet_queue;
-extern packetQueue audio_packet_queue;
 
 #endif

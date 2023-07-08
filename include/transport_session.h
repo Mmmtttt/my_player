@@ -12,9 +12,9 @@ class Session{
         ~Session();
 
 
-        Video video;
-        packetQueue video_packet_queue;
-        packetQueue audio_packet_queue;
+        std::shared_ptr<Video> video;
+        std::shared_ptr<packetQueue> video_packet_queue;
+        std::shared_ptr<packetQueue> audio_packet_queue;
         int64_t v_size;
         int64_t a_size;
         SOCKET server_socket;

@@ -3,7 +3,11 @@
 
 Session::Session(std::string filename,SOCKET socket,TYPE type){
     if(type==SERVER){
-        Video video(filename,&video_packet_queue,&audio_packet_queue);
+        server_socket=socket;
+        video=std::make_shared<Video>(filename,type);
+        video->push_All_Packets();
+        video_packet_queue=video->video_packet_queue;
+        audio_packet_queue=video->audio_packet_queue;
         send_Video_information();
         send_Packet_information();
         std::thread seek_handle_thread([&]{
@@ -17,70 +21,76 @@ Session::Session(std::string filename,SOCKET socket,TYPE type){
         seek_handle_thread.join();
     }
     else if(type==CLIENT){
+        client_socket=socket;
         receive_Video_information();
+        video_packet_queue=video->video_packet_queue;
+        audio_packet_queue=video->audio_packet_queue;
         receive_Packet_information();
         std::thread receive_data_thread([&]{
             receive_Data();
         });
-        video.play();
+        video->play();
+        close=true;
         receive_data_thread.join();
     }
 }
 
+Session::~Session(){std::cout<<"session destory"<<std::endl;}
+
 void Session::send_Video_information(){
-    SEND_ALL(video.v_idx);
-    SEND_ALL(*video.v_p_codec_par);
-    send_all(server_socket,(const char *)video.v_p_codec_par->extradata,video.v_p_codec_par->extradata_size);
-    SEND_ALL(video.v_timebase_in_ms);
+    SEND_ALL(video->v_idx);
+    SEND_ALL(*video->v_p_codec_par);
+    send_all(server_socket,(const char *)video->v_p_codec_par->extradata,video->v_p_codec_par->extradata_size);
+    SEND_ALL(video->v_timebase_in_ms);
 
-    SEND_ALL(video.a_idx);
-    SEND_ALL(*video.a_p_codec_par);
-    send_all(server_socket,(const char *)video.a_p_codec_par->extradata,video.a_p_codec_par->extradata_size);
-    SEND_ALL(video.a_timebase_in_ms);
+    SEND_ALL(video->a_idx);
+    SEND_ALL(*video->a_p_codec_par);
+    send_all(server_socket,(const char *)video->a_p_codec_par->extradata,video->a_p_codec_par->extradata_size);
+    SEND_ALL(video->a_timebase_in_ms);
 
-    v_size=video_packet_queue.get_pkt_count();
-    a_size=audio_packet_queue.get_pkt_count();
+    v_size=video_packet_queue->get_pkt_count();
+    a_size=audio_packet_queue->get_pkt_count();
     SEND_ALL(v_size);
     SEND_ALL(a_size);
 }
 
 void Session::send_Packet_information(){
-    video_packet_queue.set_curr_pos(0);
-    audio_packet_queue.set_curr_pos(0);
+    video_packet_queue->set_curr_pos(0);
+    audio_packet_queue->set_curr_pos(0);
 
-    while(video_packet_queue.get_curr_pos()+audio_packet_queue.get_curr_pos()<v_size+a_size-2){
+    while(video_packet_queue->get_curr_pos()+audio_packet_queue->get_curr_pos()<v_size+a_size-2){
 
-        if((video_packet_queue.get_curr_num())<=(audio_packet_queue.get_curr_num())){
-            std::unique_lock<std::mutex>(video_packet_queue.Mutex);
-            SEND_ALL(video_packet_queue.get_curr_pkt()->size);
-            SEND_ALL(*video_packet_queue.get_curr_pkt());
+        if((video_packet_queue->get_curr_num())<=(audio_packet_queue->get_curr_num())){
+            std::unique_lock<std::mutex>(video_packet_queue->Mutex);
+            SEND_ALL(video_packet_queue->get_curr_pkt()->size);
+            SEND_ALL(*video_packet_queue->get_curr_pkt());
 
-            video_packet_queue.curr_decode_pos++;
+            video_packet_queue->curr_decode_pos++;
         }
         else{
-            std::unique_lock<std::mutex>(audio_packet_queue.Mutex);
-            SEND_ALL(audio_packet_queue.get_curr_pkt()->size);
-            SEND_ALL(*audio_packet_queue.get_curr_pkt());
+            std::unique_lock<std::mutex>(audio_packet_queue->Mutex);
+            SEND_ALL(audio_packet_queue->get_curr_pkt()->size);
+            SEND_ALL(*audio_packet_queue->get_curr_pkt());
 
-            audio_packet_queue.curr_decode_pos++;
+            audio_packet_queue->curr_decode_pos++;
         }
         
 
     }
     
 
-    video_packet_queue.set_curr_pos(0);
-    audio_packet_queue.set_curr_pos(0);
+    video_packet_queue->set_curr_pos(0);
+    audio_packet_queue->set_curr_pos(0);
 }
 
 void Session::send_Data(){
-    while(video_packet_queue.get_curr_pos()+audio_packet_queue.get_curr_pos()<v_size+a_size-2){
+    while(!close&&(video_packet_queue->get_curr_pos()+audio_packet_queue->get_curr_pos()<v_size+a_size-2)){
         //SDL_Delay(30);
-        std::unique_lock<std::mutex> vlock(video_packet_queue.Mutex);
-        std::unique_lock<std::mutex> alock(audio_packet_queue.Mutex);
-        if((video_packet_queue.get_curr_num())<=(audio_packet_queue.get_curr_num())){
-            if(video_packet_queue.get_curr_pos()>=v_size)break;
-            std::shared_ptr<myAVPacket> temp=video_packet_queue.get_curr_pkt();
+        std::unique_lock<std::mutex> vlock(video_packet_queue->Mutex);
+        std::unique_lock<std::mutex> alock(audio_packet_queue->Mutex);
+        if((video_packet_queue->get_curr_num())<=(audio_packet_queue->get_curr_num())){
+            if(video_packet_queue->get_curr_pos()>=v_size)break;
+            std::shared_ptr<myAVPacket> temp=video_packet_queue->get_curr_pkt();
             if(temp->is_sended)continue;
             
             SEND_ALL(temp->size);
@@ -89,12 +99,12 @@ void Session::send_Data(){
             send_all(server_socket,(const char *)temp->mypkt.data,temp->size);
             
             temp->is_sended=true;
-            video_packet_queue.curr_decode_pos++;
-            if(video_packet_queue.curr_decode_pos>=v_size)video_packet_queue.set_curr_pos(v_size-1);
+            video_packet_queue->curr_decode_pos++;
+            if(video_packet_queue->curr_decode_pos>=v_size)video_packet_queue->set_curr_pos(v_size-1);
         }
         else{
-            if(audio_packet_queue.get_curr_pos()>=a_size)break;
-            std::shared_ptr<myAVPacket> temp=audio_packet_queue.get_curr_pkt();
+            if(audio_packet_queue->get_curr_pos()>=a_size)break;
+            std::shared_ptr<myAVPacket> temp=audio_packet_queue->get_curr_pkt();
             if(temp->is_sended)continue;
 
             SEND_ALL(temp->size);
@@ -102,8 +112,8 @@ void Session::send_Data(){
             
             send_all(server_socket,(const char *)temp->mypkt.data,temp->size);
             temp->is_sended=true;
-            audio_packet_queue.curr_decode_pos++;
-            if(audio_packet_queue.curr_decode_pos>=a_size)audio_packet_queue.set_curr_pos(a_size-1);
+            audio_packet_queue->curr_decode_pos++;
+            if(audio_packet_queue->curr_decode_pos>=a_size)audio_packet_queue->set_curr_pos(a_size-1);
         }
     }
 }
@@ -118,29 +128,29 @@ void Session::seek_handle(){
     
     
     if(stream_idx==1){
-        std::unique_lock<std::mutex> lock(audio_packet_queue.Mutex);
-        audio_packet_queue.set_curr_pos(id);
+        std::unique_lock<std::mutex> lock(audio_packet_queue->Mutex);
+        audio_packet_queue->set_curr_pos(id);
 
-        std::shared_ptr<myAVPacket> temp=audio_packet_queue.get_curr_pkt();
+        std::shared_ptr<myAVPacket> temp=audio_packet_queue->get_curr_pkt();
         SEND_ALL(temp->size);
         SEND_ALL(*temp);
         
         send_all(server_socket,(const char *)temp->mypkt.data,temp->size);
         std::cout<<"call back   audio packet "<<temp->id_in_queue<<" sended"<<std::endl;
-        audio_packet_queue.curr_decode_pos++;
+        audio_packet_queue->curr_decode_pos++;
         
     }
     else if(stream_idx==0){
-        std::unique_lock<std::mutex> lock(video_packet_queue.Mutex);
-        video_packet_queue.set_curr_pos(id);
+        std::unique_lock<std::mutex> lock(video_packet_queue->Mutex);
+        video_packet_queue->set_curr_pos(id);
 
-        std::shared_ptr<myAVPacket> temp=video_packet_queue.get_curr_pkt();
+        std::shared_ptr<myAVPacket> temp=video_packet_queue->get_curr_pkt();
         SEND_ALL(temp->size);
         SEND_ALL(*temp);
         
         send_all(server_socket,(const char *)temp->mypkt.data,temp->size);
         std::cout<<"call back   video packet "<<temp->id_in_queue<<" sended"<<std::endl;
-        video_packet_queue.curr_decode_pos++;
+        video_packet_queue->curr_decode_pos++;
         
     }
 }
@@ -172,11 +182,11 @@ void Session::receive_Video_information(){
     RECV_ALL(a_timebase_in_ms);
 
 
-    int64_t v_size,a_size;
+
     RECV_ALL(v_size);
     RECV_ALL(a_size);
 
-    Video video(v_idx,&v_p_codec_par,v_timebase_in_ms,a_idx,&a_p_codec_par,a_timebase_in_ms);
+    video=std::make_shared<Video>(v_idx,&v_p_codec_par,v_timebase_in_ms,a_idx,&a_p_codec_par,a_timebase_in_ms);
 }
 
 void Session::receive_Packet_information(){
@@ -190,16 +200,16 @@ void Session::receive_Packet_information(){
         temp->is_recived=false;
 
         if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
-            video_packet_queue.packet_queue_push(temp);
+            video_packet_queue->packet_queue_push(temp);
         }
         else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
-            audio_packet_queue.packet_queue_push(temp);
+            audio_packet_queue->packet_queue_push(temp);
         }
     }
 }
 
 void Session::receive_Data(){
-    while(!close&&(video_packet_queue.curr_decode_pos+audio_packet_queue.curr_decode_pos<v_size+a_size-2)){
+    while(!close&&(video_packet_queue->curr_decode_pos+audio_packet_queue->curr_decode_pos<v_size+a_size-2)){
         std::shared_ptr<myAVPacket> temp=std::shared_ptr<myAVPacket>(new myAVPacket);
         int64_t size;
         RECV_ALL(size);
@@ -213,12 +223,12 @@ void Session::receive_Data(){
         bool ret;
         if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
             temp->is_recived=true;
-            ret=video_packet_queue.insert(temp);
+            ret=video_packet_queue->insert(temp);
             //std::cout<<"video receive packet "<<temp->id_in_queue<<std::endl;
         }
         else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
             temp->is_recived=true;
-            ret=audio_packet_queue.insert(temp);
+            ret=audio_packet_queue->insert(temp);
             //std::cout<<"audio receive packet "<<temp->id_in_queue<<std::endl;
         }
         if(!ret)return;

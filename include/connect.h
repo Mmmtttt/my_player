@@ -6,13 +6,12 @@
 #include <string>
 #include <thread>
 
-
+class Connection;
 class Server {
 public:
     Server(int port);
     ~Server();
     void listenConnections();
-    void handleConnection(Connection* connection);
 private:
     int port;
     std::vector<Connection*> connections;
@@ -30,22 +29,21 @@ private:
 
 class Connection {
 public:
-    Connection(Server* server, SOCKET socket);
+    Connection(SOCKET socket);
     ~Connection();
     void processRequest();
 private:
-    Server* server;
     SOCKET socket;
 };
 
-class SocketWrapper {
-public:
-    SocketWrapper();
-    ~SocketWrapper();
-    int sendData(const char* buffer, int len);
-    int receiveData(char* buffer, int len);
-private:
-    SOCKET socket;
-};
+// class SocketWrapper {
+// public:
+//     SocketWrapper();
+//     ~SocketWrapper();
+//     int sendData(const char* buffer, int len);
+//     int receiveData(char* buffer, int len);
+// private:
+//     SOCKET socket;
+// };
 
 #endif

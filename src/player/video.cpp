@@ -80,8 +80,10 @@ Video::Video(const std::string& filename):filename(filename)
     }
     a_decoder=static_a_decoder;
 
-    video_packet_queue=&::video_packet_queue;
-    audio_packet_queue=&::audio_packet_queue;
+    video_packet_queue=std::make_shared<packetQueue>();
+    audio_packet_queue=std::make_shared<packetQueue>();
+    v_decoder->video_packet_queue=video_packet_queue;
+    a_decoder->audio_packet_queue=audio_packet_queue;
     
 //std::cout<<"done2"<<std::endl;
     
@@ -94,7 +96,7 @@ Video::~Video()
     avformat_network_deinit();
 }
 
-Video::Video(const std::string& _filename,packetQueue* _video_packet_queue,packetQueue* _audio_packet_queue):filename(_filename){
+Video::Video(const std::string& _filename,TYPE type):filename(_filename){
     avformat_network_init();
     //av_register_all();
     // A1. 打开视频文件：读取文件头，将文件格式信息存储在"fmt context"中
@@ -149,29 +151,9 @@ Video::Video(const std::string& _filename,packetQueue* _video_packet_queue,packe
     v_timebase_in_ms =av_q2d(p_fmt_ctx->streams[v_idx]->time_base) * 1000;
     a_timebase_in_ms =av_q2d(p_fmt_ctx->streams[a_idx]->time_base) * 1000;
 
-    video_packet_queue=_video_packet_queue;
-    audio_packet_queue=_audio_packet_queue;
+    video_packet_queue=std::make_shared<packetQueue>();
+    audio_packet_queue=std::make_shared<packetQueue>();
 
-    int64_t num=0;
-    while(ret==0){
-        std::shared_ptr<myAVPacket> temp(new myAVPacket());
-        ret=av_read_frame(p_fmt_ctx, &temp->mypkt);
-        temp->size=temp->mypkt.size;
-        
-        num++;
-        temp->num=num;
-        if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
-            temp->id_in_queue=video_packet_queue->get_pkt_count();
-            video_packet_queue->packet_queue_push(temp);
-            temp->is_recived=true;
-        }
-            
-        else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
-            temp->id_in_queue=audio_packet_queue->get_pkt_count();
-            audio_packet_queue->packet_queue_push(temp);
-            temp->is_recived=true;
-        }
-    }
 }
 
 
@@ -186,8 +168,7 @@ Video::Video(int _v_idx,AVCodecParameters *_v_p_codec_par,double _v_timebase_in_
     a_idx=_a_idx;
 
 
-    video_packet_queue=&::video_packet_queue;
-    audio_packet_queue=&::audio_packet_queue;
+
 
     try{v_decoder=std::make_unique<videoDecoder>(v_p_codec_par, v_idx ,v_timebase_in_ms);}
     catch(const std::exception& e)
@@ -206,6 +187,11 @@ Video::Video(int _v_idx,AVCodecParameters *_v_p_codec_par,double _v_timebase_in_
     }
     a_decoder=static_a_decoder;
     filename=std::string("1.mp4");
+
+    video_packet_queue=std::make_shared<packetQueue>();
+    audio_packet_queue=std::make_shared<packetQueue>();
+    v_decoder->video_packet_queue=video_packet_queue;
+    a_decoder->audio_packet_queue=audio_packet_queue;
 }
 
 
@@ -273,6 +259,30 @@ void Video::play(){
         else
         {
             // printf("Ignore SDL event 0x%04X\n", sdl_event.type);
+        }
+    }
+}
+
+void Video::push_All_Packets(){
+    int ret=0;
+    int64_t num=0;
+    while(ret==0){
+        std::shared_ptr<myAVPacket> temp(new myAVPacket());
+        ret=av_read_frame(p_fmt_ctx, &temp->mypkt);
+        temp->size=temp->mypkt.size;
+        
+        num++;
+        temp->num=num;
+        if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
+            temp->id_in_queue=video_packet_queue->pkts_ptr.size();
+            video_packet_queue->packet_queue_push(temp);
+            temp->is_recived=true;
+        }
+            
+        else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
+            temp->id_in_queue=audio_packet_queue->pkts_ptr.size();
+            audio_packet_queue->packet_queue_push(temp);
+            temp->is_recived=true;
         }
     }
 }

@@ -4,8 +4,7 @@
 #include <iostream>
 #include <libswscale/swscale.h>
 // std::shared_ptr<audioDecoder> static_a_decoder;
-packetQueue video_packet_queue;
-packetQueue audio_packet_queue;
+
 
 int videoDecoder::duration=0;
 
@@ -57,7 +56,7 @@ Decoder::~Decoder()
 void videoDecoder::get_Packet(){
     std::shared_ptr<myAVPacket> temp;
     while(1){
-        video_packet_queue.packet_queue_pop(temp,1);
+        video_packet_queue->packet_queue_pop(temp,1);
         
         auto end = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
@@ -77,11 +76,11 @@ void videoDecoder::get_Packet(){
         }
         else if(Video_Delay_Advanced(diff))
         {
-            video_packet_queue.curr_decode_pos=video_packet_queue.curr_decode_pos-2;
+            video_packet_queue->curr_decode_pos-=2;
             continue;
         }
         else if(Video_Should_Seek(diff)){
-            video_packet_queue.seek(time_shaft,timebase_in_ms);
+            video_packet_queue->seek(time_shaft,timebase_in_ms);
             avcodec_flush_buffers(p_codec_ctx);
         }
     }
@@ -94,29 +93,7 @@ void videoDecoder::get_Packet(){
     }
 }
 
-void Decoder::push_All_Packets(AVFormatContext*p_fmt_ctx){
-    int ret=0;
-    int64_t num=0;
-    while(ret==0){
-        std::shared_ptr<myAVPacket> temp(new myAVPacket());
-        ret=av_read_frame(p_fmt_ctx, &temp->mypkt);
-        temp->size=temp->mypkt.size;
-        
-        num++;
-        temp->num=num;
-        if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){
-            temp->id_in_queue=video_packet_queue.pkts_ptr.size();
-            video_packet_queue.packet_queue_push(temp);
-            temp->is_recived=true;
-        }
-            
-        else if(temp->mypkt.stream_index==AVMEDIA_TYPE_AUDIO){
-            temp->id_in_queue=audio_packet_queue.pkts_ptr.size();
-            audio_packet_queue.packet_queue_push(temp);
-            temp->is_recived=true;
-        }
-    }
-}
+
 
 
 
@@ -244,19 +221,7 @@ std::shared_ptr<audioDecoder> static_a_decoder;
 
 audioDecoder::audioDecoder(AVCodecParameters *_p_codec_par,int _idx,double _timebase_in_ms):Decoder(_p_codec_par,_idx,_timebase_in_ms){
     
-    // timebase_in_ms=av_q2d(p_fmt_ctx->streams[_idx]->time_base) * 1000;
-    // audio_idx=_idx;
-    // audio_p_fmt_ctx=_p_fmt_ctx;
-
-    // try{renderer=std::make_unique<audioSdlRenderer>(p_codec_ctx);}
-    // catch(const std::exception& e)
-    // {
-    //     std::cout<<e.what()<<std::endl;
-    //     avcodec_free_context(&p_codec_ctx);
-    //     throw std::runtime_error("create renderer failed\n");
-    // }
-
-    // frame=renderer->frame;
+    
     
     // A5.1 获取解码器参数AVCodecParameters
     // AVCodecParameters *p_codec_par = _p_fmt_ctx->streams[_idx]->codecpar;
@@ -308,8 +273,8 @@ audioDecoder::audioDecoder(AVCodecParameters *_p_codec_par,int _idx,double _time
     wanted_spec.channels = p_codec_ctx->channels;   // 声道数
     wanted_spec.silence = 0;                        // 静音值
     wanted_spec.samples = SDL_AUDIO_BUFFER_SIZE;    // SDL声音缓冲区尺寸，单位是单声道采样点尺寸x通道数
-    wanted_spec.callback = sdl_audio_callback;      // 回调函数，若为NULL，则应使用SDL_QueueAudio()机制
-    wanted_spec.userdata = p_codec_ctx;             // 提供给回调函数的参数
+    wanted_spec.callback = static_a_decoder->sdl_audio_callback;      // 回调函数，若为NULL，则应使用SDL_QueueAudio()机制
+    wanted_spec.userdata = NULL;             // 提供给回调函数的参数
     if (SDL_OpenAudio(&wanted_spec, NULL) < 0)
     {
         printf("SDL_OpenAudio() failed: %s\n", SDL_GetError());
@@ -341,4 +306,3 @@ audioDecoder::~audioDecoder(){
     SDL_CloseAudio();
     std::cout<<"aideoDecoder destoryed"<<std::endl;
 }
-

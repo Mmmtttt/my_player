@@ -12,19 +12,21 @@ Session::Session(std::string filename,SOCKET socket,TYPE type){
         send_Packet_information();
         std::thread seek_handle_thread([&]{
             while(!close){
+                //std::cout<<"seek_handle"<<std::endl;
                 seek_handle();
             }
         });
         int i=0;
         while(!close){
-            if(i>10)break;i++;
             send_Data();
+            Sleep(50);
         }
         close=true;
         seek_handle_thread.join();
     }
     else if(type==CLIENT){
         client_socket=socket;
+        ::client_socket=socket;
         receive_Video_information();
         video_packet_queue=video->video_packet_queue;
         audio_packet_queue=video->audio_packet_queue;
@@ -106,13 +108,13 @@ void Session::send_Packet_information(){
 
 void Session::send_Data(){
     while(!close&&(video_packet_queue->get_curr_pos()+audio_packet_queue->get_curr_pos()<v_size+a_size-2)){
-        //SDL_Delay(30);
+        //SDL_Delay(40);
         std::unique_lock<std::mutex> vlock(video_packet_queue->Mutex);
         std::unique_lock<std::mutex> alock(audio_packet_queue->Mutex);
         if((video_packet_queue->get_curr_num())<=(audio_packet_queue->get_curr_num())){
             if(video_packet_queue->get_curr_pos()>=v_size)break;
             std::shared_ptr<myAVPacket> temp=video_packet_queue->get_curr_pkt();
-            if(temp->is_sended)continue;
+            //if(temp->is_sended)continue;
             
             SEND_ALL(temp->size);
             SEND_ALL(*temp);
@@ -122,11 +124,12 @@ void Session::send_Data(){
             temp->is_sended=true;
             video_packet_queue->curr_decode_pos++;
             if(video_packet_queue->curr_decode_pos>=v_size)video_packet_queue->set_curr_pos(v_size-1);
+            //std::cout<<"packet "<<video_packet_queue->get_curr_num()<<" sended"<<std::endl;
         }
         else{
             if(audio_packet_queue->get_curr_pos()>=a_size)break;
             std::shared_ptr<myAVPacket> temp=audio_packet_queue->get_curr_pkt();
-            if(temp->is_sended)continue;
+            //if(temp->is_sended)continue;
 
             SEND_ALL(temp->size);
             SEND_ALL(*temp);
@@ -135,6 +138,7 @@ void Session::send_Data(){
             temp->is_sended=true;
             audio_packet_queue->curr_decode_pos++;
             if(audio_packet_queue->curr_decode_pos>=a_size)audio_packet_queue->set_curr_pos(a_size-1);
+            //std::cout<<"packet "<<audio_packet_queue->get_curr_num()<<" sended"<<std::endl;
         }
     }
 }
@@ -145,7 +149,7 @@ void Session::seek_handle(){
     int64_t id;
     int ret=recv_all(server_socket,(char*)&stream_idx,sizeof(stream_idx));
     ret=recv_all(server_socket,(char*)&id,sizeof(id));
-    if(ret<=0)return;
+    if(ret<=0){close=true; return;};
     
     
     if(stream_idx==1){

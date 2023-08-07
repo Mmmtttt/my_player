@@ -1,5 +1,6 @@
 #include "packetQueue.h"
 #include "control.h"
+#include <windows.h>
 
 //int64_t myAVPacket::num=0;//从0开始对myAVPacket计数，第一个包序号为1
 
@@ -29,8 +30,10 @@ int packetQueue::packet_queue_pop(std::shared_ptr<myAVPacket>& pkt_ptr, int bloc
         {
             if(!is_curr_received()){
                 pause();
+                std::cout<<"waiting queue "<<get_idx()<<"  packet  "<<get_curr_id()<<std::endl;
                 seek_callback(get_idx(),get_curr_id());
                 cond.wait(lock, [&]{ return is_curr_received();});
+                std::cout<<" queue "<<get_idx()<<"  packet  "<<get_curr_id()<<" received"<<std::endl;
                 action();
             }
             pkt_ptr=pkts_ptr[curr_decode_pos];

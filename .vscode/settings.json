@@ -95,6 +95,11 @@
     "mutex": "cpp",
     "map": "cpp",
     "functional": "cpp",
-    "iterator": "cpp"
+    "iterator": "cpp",
+    "any": "cpp",
+    "codecvt": "cpp",
+    "forward_list": "cpp",
+    "numeric": "cpp",
+    "valarray": "cpp"
   }
 }

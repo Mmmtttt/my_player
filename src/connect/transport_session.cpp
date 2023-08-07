@@ -55,32 +55,41 @@ void Session::send_Video_information(){
     a_size=audio_packet_queue->get_pkt_count();
     SEND_ALL(v_size);
     SEND_ALL(a_size);
+
+    int a=sizeof(int);
+    int b=sizeof(int64_t);
+
+    std::cout<<"Video_info_size : "<<sizeof(*video->v_p_codec_par)+video->v_p_codec_par->extradata_size+sizeof(*video->a_p_codec_par)+video->a_p_codec_par->extradata_size+2*a+2*b<<std::endl;
 }
 
 void Session::send_Packet_information(){
     video_packet_queue->set_curr_pos(0);
     audio_packet_queue->set_curr_pos(0);
 
+
+    int64_t Packet_info_size=0;
     while(video_packet_queue->get_curr_pos()+audio_packet_queue->get_curr_pos()<v_size+a_size-2){
 
         if((video_packet_queue->get_curr_num())<=(audio_packet_queue->get_curr_num())){
             std::unique_lock<std::mutex>(video_packet_queue->Mutex);
-            SEND_ALL(video_packet_queue->get_curr_pkt()->size);
+            //SEND_ALL(video_packet_queue->get_curr_pkt()->size);
             SEND_ALL(*video_packet_queue->get_curr_pkt());
 
             video_packet_queue->curr_decode_pos++;
+            Packet_info_size+=sizeof(*video_packet_queue->get_curr_pkt());
         }
         else{
             std::unique_lock<std::mutex>(audio_packet_queue->Mutex);
-            SEND_ALL(audio_packet_queue->get_curr_pkt()->size);
+            //SEND_ALL(audio_packet_queue->get_curr_pkt()->size);
             SEND_ALL(*audio_packet_queue->get_curr_pkt());
 
             audio_packet_queue->curr_decode_pos++;
+            Packet_info_size+=sizeof(*audio_packet_queue->get_curr_pkt());
         }
         
-
+        
     }
-    
+    std::cout<<"Packet_info_size : "<<Packet_info_size<<std::endl;
 
     video_packet_queue->set_curr_pos(0);
     audio_packet_queue->set_curr_pos(0);
@@ -195,8 +204,8 @@ void Session::receive_Video_information(){
 void Session::receive_Packet_information(){
     for(int64_t i=0;i<v_size+a_size-2;i++){
         std::shared_ptr<myAVPacket> temp=std::shared_ptr<myAVPacket>(new myAVPacket);
-        int64_t size;
-        RECV_ALL(size);
+        // int64_t size;
+        // RECV_ALL(size);
         RECV_ALL(*temp);
         temp->mypkt.data=NULL;
         temp->mypkt.buf=NULL;

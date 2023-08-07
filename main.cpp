@@ -22,6 +22,7 @@
 
 int main(int argc, char* argv[])
 {
+    std::cout<<sizeof(myAVPacket)<<std::endl;
     std::string filename;
 
     if (argc < 2) {

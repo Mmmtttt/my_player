@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(MyPlayer)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 # 设置源代码目录
 set(PLAYER
     #main.cpp

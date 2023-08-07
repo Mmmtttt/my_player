@@ -70,23 +70,32 @@ void Session::send_Packet_information(){
     int64_t Packet_info_size=0;
     while(video_packet_queue->get_curr_pos()+audio_packet_queue->get_curr_pos()<v_size+a_size-2){
 
+        std::shared_ptr<myAVPacket> temp_ptr;
         if((video_packet_queue->get_curr_num())<=(audio_packet_queue->get_curr_num())){
             std::unique_lock<std::mutex>(video_packet_queue->Mutex);
             //SEND_ALL(video_packet_queue->get_curr_pkt()->size);
-            SEND_ALL(*video_packet_queue->get_curr_pkt());
+            //SEND_ALL(*video_packet_queue->get_curr_pkt());
+            temp_ptr=video_packet_queue->get_curr_pkt();
+            
 
             video_packet_queue->curr_decode_pos++;
-            Packet_info_size+=sizeof(*video_packet_queue->get_curr_pkt());
+            // Packet_info_size+=sizeof(*video_packet_queue->get_curr_pkt());
         }
         else{
             std::unique_lock<std::mutex>(audio_packet_queue->Mutex);
             //SEND_ALL(audio_packet_queue->get_curr_pkt()->size);
-            SEND_ALL(*audio_packet_queue->get_curr_pkt());
+            //SEND_ALL(*audio_packet_queue->get_curr_pkt());
+            temp_ptr=audio_packet_queue->get_curr_pkt();
 
             audio_packet_queue->curr_decode_pos++;
-            Packet_info_size+=sizeof(*audio_packet_queue->get_curr_pkt());
+            // Packet_info_size+=sizeof(*audio_packet_queue->get_curr_pkt());
         }
-        
+        SEND_ALL(temp_ptr->id_in_queue);
+        SEND_ALL(temp_ptr->num);
+        SEND_ALL(temp_ptr->mypkt.dts);
+        SEND_ALL(temp_ptr->mypkt.stream_index);
+        SEND_ALL(temp_ptr->mypkt.flags);
+        Packet_info_size+=8+8+8+4+4;
         
     }
     std::cout<<"Packet_info_size : "<<Packet_info_size<<std::endl;
@@ -206,7 +215,11 @@ void Session::receive_Packet_information(){
         std::shared_ptr<myAVPacket> temp=std::shared_ptr<myAVPacket>(new myAVPacket);
         // int64_t size;
         // RECV_ALL(size);
-        RECV_ALL(*temp);
+        RECV_ALL(temp->id_in_queue);
+        RECV_ALL(temp->num);
+        RECV_ALL(temp->mypkt.dts);
+        RECV_ALL(temp->mypkt.stream_index);
+        RECV_ALL(temp->mypkt.flags);
         temp->mypkt.data=NULL;
         temp->mypkt.buf=NULL;
         temp->is_recived=false;

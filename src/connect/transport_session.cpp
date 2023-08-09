@@ -129,7 +129,7 @@ void Session::send_Packet_information(){
 
 void Session::send_Data(){
     while(!close&&(video_packet_queue->get_curr_pos()+audio_packet_queue->get_curr_pos()<v_size+a_size-2)){
-        //SDL_Delay(40);
+    //    SDL_Delay(40);
         std::unique_lock<std::mutex> vlock(video_packet_queue->Mutex);
         std::unique_lock<std::mutex> alock(audio_packet_queue->Mutex);
         std::string message("data");
@@ -175,15 +175,18 @@ void Session::seek_handle(){
 
     std::string message;
     Recv_Message(server_socket,message);
+    std::cout<<message<<std::endl;
     if(message=="exit"){close=true; return;};
 
     int ret=recv_all(server_socket,(char*)&stream_idx,sizeof(stream_idx));
     ret=recv_all(server_socket,(char*)&id,sizeof(id));
     if(ret<=0){close=true; return;};
     
-    
+
     if(stream_idx==1){
         std::unique_lock<std::mutex> lock(audio_packet_queue->Mutex);
+        std::string message2("data");
+        Send_Message(server_socket,message2);
         audio_packet_queue->set_curr_pos(id);
 
         std::shared_ptr<myAVPacket> temp=audio_packet_queue->get_curr_pkt();
@@ -197,6 +200,8 @@ void Session::seek_handle(){
     }
     else if(stream_idx==0){
         std::unique_lock<std::mutex> lock(video_packet_queue->Mutex);
+        std::string message2("data");
+        Send_Message(server_socket,message2);
         video_packet_queue->set_curr_pos(id);
 
         std::shared_ptr<myAVPacket> temp=video_packet_queue->get_curr_pkt();
@@ -273,7 +278,7 @@ void Session::receive_Data(){
         std::string message;
         Recv_Message(client_socket,message);
         if(message=="exit_ack"){close=true;return;}
-
+        std::cout<<message<<std::endl;
 
         int64_t size;
         RECV_ALL(size);

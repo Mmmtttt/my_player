@@ -34,6 +34,8 @@ int main(int argc, char* argv[])
     video.push_All_Packets();
 
     video.play();
+    video.~Video();
+    SDL_Delay(5000);
 
 
     return 0;

@@ -17,6 +17,8 @@ set(PLAYER
     src/connect/win_net.cpp
     src/connect/connect.cpp
     src/connect/transport_session.cpp
+    src/portocol/my_portocol.cpp
+    libs_win/develop/json.hpp
     # 添加其他源文件
 )
 
@@ -24,6 +26,7 @@ set(PLAYER
 include_directories(include 
 ${CMAKE_SOURCE_DIR}/libs_win/develop/ffmpeg-n5.1-latest-win64-gpl-shared-5.1/include 
 ${CMAKE_SOURCE_DIR}/libs_win/develop/SDL2-2.0.9/include
+${CMAKE_SOURCE_DIR}/libs_win/develop
 )
 
 # 添加 FFmpeg 库目录

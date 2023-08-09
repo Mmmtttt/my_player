@@ -94,6 +94,7 @@ Video::~Video()
     avformat_close_input(&p_fmt_ctx);
     
     avformat_network_deinit();
+    std::cout<<"video destoryed"<<std::endl;
 }
 
 Video::Video(const std::string& _filename,TYPE type):filename(_filename){
@@ -186,7 +187,7 @@ Video::Video(int _v_idx,AVCodecParameters *_v_p_codec_par,double _v_timebase_in_
         throw std::runtime_error("create a_decoder failed\n");
     }
     a_decoder=static_a_decoder;
-    filename=std::string("1.mp4");
+    //filename=std::string("1.mp4");
 
     video_packet_queue=std::make_shared<packetQueue>();
     audio_packet_queue=std::make_shared<packetQueue>();
@@ -261,6 +262,7 @@ void Video::play(){
             // printf("Ignore SDL event 0x%04X\n", sdl_event.type);
         }
     }
+    std::cout<<"end play"<<std::endl;
 }
 
 void Video::push_All_Packets(){

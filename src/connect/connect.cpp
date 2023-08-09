@@ -1,5 +1,6 @@
 #include "connect.h"
 #include "transport_session.h"
+#include "my_portocol.h"
 
 Server::Server(int port) : port(port) {
 }
@@ -85,7 +86,15 @@ void Client::startConnection() {
         return;
     }
 
-    Session session("1.mp4",connect_socket,CLIENT);
+    while(true){
+        int ret=Receive_FileNames(connect_socket);
+        std::string name;
+        ret *=Send_FileName(connect_socket,name);
+        if(ret<=0){std::cout<<"connect failed"<<std::endl;return;}
+
+        try{Session session(name,connect_socket,CLIENT);}
+        catch(const std::exception& e){std::cout<<e.what()<<std::endl;}
+    }
 }
 
 Connection::Connection(SOCKET socket) : socket(socket) {
@@ -93,8 +102,18 @@ Connection::Connection(SOCKET socket) : socket(socket) {
 
 Connection::~Connection() {
     closesocket(socket);
+    std::cout<<"connection destoryed"<<std::endl;
 }
 
 void Connection::processRequest() {
-    Session session("1.mp4",socket,SERVER);
+    while(true){
+        int ret=Send_Filenames(socket);
+        std::string name;
+        ret *=Receive_FileName(socket,name);
+        if(ret<=0){std::cout<<"connect failed"<<std::endl;return;}
+        if(name=="q")break;
+        try{Session session(name,socket,SERVER);}
+        catch(const std::exception& e){std::cout<<e.what()<<std::endl;}
+    }
+    
 }

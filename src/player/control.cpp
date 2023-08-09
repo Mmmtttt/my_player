@@ -1,6 +1,7 @@
 #include "control.h"
 #include "win_net.h"
 #include "packetQueue.h"
+#include "my_portocol.h"
 
 std::chrono::_V2::system_clock::time_point start;
 int64_t time_shaft = 0;
@@ -46,6 +47,8 @@ void action(){
 }
 
 void seek_callback(int stream_idx,int64_t id){
+    std::string message("callback_permission");
+    Send_Message(client_socket,message);
     send_all(client_socket,(const char *)&stream_idx,sizeof(int));
     send_all(client_socket,(const char *)&id,sizeof(int64_t));
 }

@@ -1,5 +1,5 @@
 #include "transport_session.h"
-
+#include "my_portocol.h"
 
 Session::Session(std::string filename,SOCKET socket,TYPE type){
     if(type==SERVER){
@@ -22,6 +22,8 @@ Session::Session(std::string filename,SOCKET socket,TYPE type){
             Sleep(50);
         }
         close=true;
+        std::string message("exit_ack");
+        Send_Message(server_socket,message);
         seek_handle_thread.join();
     }
     else if(type==CLIENT){
@@ -35,8 +37,13 @@ Session::Session(std::string filename,SOCKET socket,TYPE type){
             receive_Data();
         });
         video->play();
+        std::string message("exit");
+        Send_Message(client_socket,message);
+
         close=true;
+        std::cout<<"waiting join"<<std::endl;
         receive_data_thread.join();
+        std::cout<<"joined"<<std::endl;
     }
 }
 
@@ -111,6 +118,10 @@ void Session::send_Data(){
         //SDL_Delay(40);
         std::unique_lock<std::mutex> vlock(video_packet_queue->Mutex);
         std::unique_lock<std::mutex> alock(audio_packet_queue->Mutex);
+        std::string message("data");
+        Send_Message(server_socket,message);
+
+
         if((video_packet_queue->get_curr_num())<=(audio_packet_queue->get_curr_num())){
             if(video_packet_queue->get_curr_pos()>=v_size)break;
             std::shared_ptr<myAVPacket> temp=video_packet_queue->get_curr_pkt();
@@ -147,6 +158,11 @@ void Session::send_Data(){
 void Session::seek_handle(){
     int stream_idx;
     int64_t id;
+
+    std::string message;
+    Recv_Message(server_socket,message);
+    if(message=="exit"){close=true; return;};
+
     int ret=recv_all(server_socket,(char*)&stream_idx,sizeof(stream_idx));
     ret=recv_all(server_socket,(char*)&id,sizeof(id));
     if(ret<=0){close=true; return;};
@@ -240,6 +256,11 @@ void Session::receive_Packet_information(){
 void Session::receive_Data(){
     while(!close&&(video_packet_queue->curr_decode_pos+audio_packet_queue->curr_decode_pos<v_size+a_size-2)){
         std::shared_ptr<myAVPacket> temp=std::shared_ptr<myAVPacket>(new myAVPacket);
+        std::string message;
+        Recv_Message(client_socket,message);
+        if(message=="exit_ack")return;
+
+
         int64_t size;
         RECV_ALL(size);
         av_new_packet(&temp->mypkt, size);

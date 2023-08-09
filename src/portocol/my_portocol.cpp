@@ -16,7 +16,7 @@ int Recv_Message(SOCKET socket, std::string& message){
     char * buff=new char[length];
     ret=recv_all(socket,buff,length);
     message.clear();
-    message=std::string(buff);
+    message.assign(buff, length);
     delete []buff;
     return ret;
 }

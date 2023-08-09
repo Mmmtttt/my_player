@@ -4,7 +4,16 @@
 Session::Session(std::string filename,SOCKET socket,TYPE type){
     if(type==SERVER){
         server_socket=socket;
-        video=std::make_shared<Video>(filename,type);
+        try{video=std::make_shared<Video>(filename,type);}
+        catch(const std::exception& e){
+            std::cout<<e.what()<<std::endl;
+            std::string message("NO_FOUND");
+            Send_Message(server_socket,message);
+            return;
+        }
+
+        std::string message("FOUNDED");
+        Send_Message(server_socket,message);
         video->push_All_Packets();
         video_packet_queue=video->video_packet_queue;
         audio_packet_queue=video->audio_packet_queue;
@@ -16,19 +25,24 @@ Session::Session(std::string filename,SOCKET socket,TYPE type){
                 seek_handle();
             }
         });
-        int i=0;
         while(!close){
             send_Data();
             Sleep(50);
         }
         close=true;
-        std::string message("exit_ack");
-        Send_Message(server_socket,message);
         seek_handle_thread.join();
+
+        std::string message2("exit_ack");
+        Send_Message(server_socket,message2);
     }
     else if(type==CLIENT){
         client_socket=socket;
         ::client_socket=socket;
+
+        std::string message;
+        Recv_Message(client_socket,message);
+        if(message=="NO_FOUND"){close=true; return;};
+
         receive_Video_information();
         video_packet_queue=video->video_packet_queue;
         audio_packet_queue=video->audio_packet_queue;
@@ -37,8 +51,8 @@ Session::Session(std::string filename,SOCKET socket,TYPE type){
             receive_Data();
         });
         video->play();
-        std::string message("exit");
-        Send_Message(client_socket,message);
+        std::string message2("exit");
+        Send_Message(client_socket,message2);
 
         close=true;
         std::cout<<"waiting join"<<std::endl;
@@ -258,7 +272,7 @@ void Session::receive_Data(){
         std::shared_ptr<myAVPacket> temp=std::shared_ptr<myAVPacket>(new myAVPacket);
         std::string message;
         Recv_Message(client_socket,message);
-        if(message=="exit_ack")return;
+        if(message=="exit_ack"){close=true;return;}
 
 
         int64_t size;

@@ -3,6 +3,11 @@
 #include "my_portocol.h"
 
 Server::Server(int port) : port(port) {
+    WSADATA wsaData;
+    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (result != NO_ERROR) {
+        throw std::runtime_error("Initialization error\n");
+    }
 }
 
 Server::~Server() {
@@ -10,6 +15,7 @@ Server::~Server() {
         delete connection;
     }
     connections.clear();
+    WSACleanup();
 }
 
 void Server::listenConnections() {
@@ -61,9 +67,16 @@ void Server::listenConnections() {
 
 
 Client::Client(std::string serverIp, int serverPort) : serverIp(serverIp), serverPort(serverPort) {
+    WSADATA wsaData;
+    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (result != NO_ERROR) {
+        throw std::runtime_error("Initialization error\n");
+    }
+    
 }
 
 Client::~Client() {
+    WSACleanup();
 }
 
 void Client::startConnection() {
@@ -87,6 +100,8 @@ void Client::startConnection() {
     }
 
     while(true){
+        WSADATA wsaData;
+        WSAStartup(MAKEWORD(2, 2), &wsaData);
         int ret=Receive_FileNames(connect_socket);
         std::string name;
         ret *=Send_FileName(connect_socket,name);
@@ -95,6 +110,7 @@ void Client::startConnection() {
         try{Session session(name,connect_socket,CLIENT);}
         catch(const std::exception& e){std::cout<<e.what()<<std::endl;}
     }
+    closesocket(connect_socket);
 }
 
 Connection::Connection(SOCKET socket) : socket(socket) {

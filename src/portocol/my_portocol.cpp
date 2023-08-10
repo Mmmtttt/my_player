@@ -6,6 +6,7 @@ using json = nlohmann::json;
 int Send_Message(SOCKET socket, std::string& message){
     int length =message.length();
     int ret=send_all(socket, (const char *)&length,sizeof(length));
+    if(ret<=0){std::cout<<WSAGetLastError()<<std::endl;}
     ret=send_all(socket,message.c_str(),length);
     return ret;
 }
@@ -13,6 +14,7 @@ int Send_Message(SOCKET socket, std::string& message){
 int Recv_Message(SOCKET socket, std::string& message){
     int length =message.length();
     int ret=recv_all(socket, (char *)&length,sizeof(length));
+    if(ret<=0){std::cout<<WSAGetLastError()<<std::endl;}
     char * buff=new char[length];
     ret=recv_all(socket,buff,length);
     message.clear();
@@ -54,6 +56,7 @@ int Receive_FileNames(SOCKET clientSocket) {
     // recv(clientSocket, (char *)&buff, length, 0);
     std::string message;
     int ret=Recv_Message(clientSocket,message);
+    if(ret<=0)return ret;
 
 
     json fileList = json::parse(message);

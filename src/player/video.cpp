@@ -84,6 +84,14 @@ Video::Video(const std::string& filename):filename(filename)
     audio_packet_queue=std::make_shared<packetQueue>();
     v_decoder->video_packet_queue=video_packet_queue;
     a_decoder->audio_packet_queue=audio_packet_queue;
+
+    s_playing_pause = false;
+    s_playing_exit = false;
+    s_video_play_time=0;
+    s_audio_play_time=0;
+    time_shaft = 0;
+    a_last_time = 0;
+    v_last_time = 0;
     
 //std::cout<<"done2"<<std::endl;
     
@@ -95,6 +103,8 @@ Video::~Video()
     
     avformat_network_deinit();
     std::cout<<"video destoryed"<<std::endl;
+    //a_decoder.reset();
+    static_a_decoder.reset();
 }
 
 Video::Video(const std::string& _filename,TYPE type):filename(_filename){
@@ -155,6 +165,14 @@ Video::Video(const std::string& _filename,TYPE type):filename(_filename){
     video_packet_queue=std::make_shared<packetQueue>();
     audio_packet_queue=std::make_shared<packetQueue>();
 
+    s_playing_pause = false;
+    s_playing_exit = false;
+    s_video_play_time=0;
+    s_audio_play_time=0;
+    time_shaft = 0;
+    a_last_time = 0;
+    v_last_time = 0;
+
 }
 
 
@@ -193,6 +211,14 @@ Video::Video(int _v_idx,AVCodecParameters *_v_p_codec_par,double _v_timebase_in_
     audio_packet_queue=std::make_shared<packetQueue>();
     v_decoder->video_packet_queue=video_packet_queue;
     a_decoder->audio_packet_queue=audio_packet_queue;
+
+    s_playing_pause = false;
+    s_playing_exit = false;
+    s_video_play_time=0;
+    s_audio_play_time=0;
+    time_shaft = 0;
+    a_last_time = 0;
+    v_last_time = 0;
 }
 
 

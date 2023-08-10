@@ -19,14 +19,6 @@
 int main(int argc, char* argv[]) {
 
 
-    WSADATA wsaData;
-    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (result != NO_ERROR) {
-        std::cout << "Initialization error.\n";
-        return 1;
-    }
-
-    
 
     Server server(12345);
     server.listenConnections();

@@ -7,7 +7,7 @@ Session::Session(std::string filename,SOCKET socket,TYPE type){
         try{video=std::make_shared<Video>(filename,type);}
         catch(const std::exception& e){
             std::cout<<e.what()<<std::endl;
-            std::string message("NO_FOUND");
+            std::string message("NOT_FOUND");
             Send_Message(server_socket,message);
             return;
         }
@@ -41,7 +41,7 @@ Session::Session(std::string filename,SOCKET socket,TYPE type){
 
         std::string message;
         Recv_Message(client_socket,message);
-        if(message=="NO_FOUND"){close=true; return;};
+        if(message=="NOT_FOUND"){close=true; return;};
 
         receive_Video_information();
         video_packet_queue=video->video_packet_queue;
@@ -54,7 +54,7 @@ Session::Session(std::string filename,SOCKET socket,TYPE type){
         std::string message2("exit");
         Send_Message(client_socket,message2);
 
-        close=true;
+        //close=true;
         std::cout<<"waiting join"<<std::endl;
         receive_data_thread.join();
         std::cout<<"joined"<<std::endl;
@@ -175,7 +175,7 @@ void Session::seek_handle(){
 
     std::string message;
     Recv_Message(server_socket,message);
-    std::cout<<message<<std::endl;
+    //std::cout<<message<<std::endl;
     if(message=="exit"){close=true; return;};
 
     int ret=recv_all(server_socket,(char*)&stream_idx,sizeof(stream_idx));
@@ -278,7 +278,7 @@ void Session::receive_Data(){
         std::string message;
         Recv_Message(client_socket,message);
         if(message=="exit_ack"){close=true;return;}
-        std::cout<<message<<std::endl;
+        //std::cout<<message<<std::endl;
 
         int64_t size;
         RECV_ALL(size);

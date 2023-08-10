@@ -87,7 +87,9 @@ videoSdlRenderer::~videoSdlRenderer()
 int videoSdlRenderer::sdl_thread_handle_refreshing(void *opaque)
 {
     SDL_Event sdl_event;
-
+    std::cout<<"refreshing thread created"<<std::endl;
+    s_playing_exit=false;
+    s_playing_pause=false;
 
     while (!s_playing_exit)
     {
@@ -101,6 +103,7 @@ int videoSdlRenderer::sdl_thread_handle_refreshing(void *opaque)
         }
         SDL_Delay(interval/speed);
     }
+    std::cout<<"refreshing thread destoryed"<<std::endl;
 
     return 0;
 }

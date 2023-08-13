@@ -227,34 +227,34 @@ audioDecoder::audioDecoder(AVCodecParameters *_p_codec_par,int _idx,double _time
     // AVCodecParameters *p_codec_par = _p_fmt_ctx->streams[_idx]->codecpar;
 
     // A5.2 获取解码器
-    const AVCodec* p_codec = avcodec_find_decoder(_p_codec_par->codec_id);
-    if (p_codec == NULL)
-    {
-        throw std::runtime_error("Cann't find codec!");
-    }
+    // const AVCodec* p_codec = avcodec_find_decoder(_p_codec_par->codec_id);
+    // if (p_codec == NULL)
+    // {
+    //     throw std::runtime_error("Cann't find codec!");
+    // }
 
 
-    // A5.3 构建解码器AVCodecContext
-    // A5.3.1 p_codec_ctx初始化：分配结构体，使用p_codec初始化相应成员为默认值
-    p_codec_ctx = avcodec_alloc_context3(p_codec);
-    if (p_codec_ctx == NULL)
-    {
-        throw std::runtime_error("avcodec_alloc_context3() failed ");
-    }
-    // A5.3.2 p_codec_ctx初始化：p_codec_par ==> p_codec_ctx，初始化相应成员
-    int ret = avcodec_parameters_to_context(p_codec_ctx, _p_codec_par);
-    if (ret < 0)
-    {
-        avcodec_free_context(&p_codec_ctx);
-        throw std::runtime_error("avcodec_parameters_to_context() failed ");
-    }
-    // A5.3.3 p_codec_ctx初始化：使用p_codec初始化p_codec_ctx，初始化完成
-    ret = avcodec_open2(p_codec_ctx, p_codec, NULL);
-    if (ret < 0)
-    {
-        avcodec_free_context(&p_codec_ctx);
-        throw std::runtime_error("avcodec_open2() failed ");
-    }
+    // // A5.3 构建解码器AVCodecContext
+    // // A5.3.1 p_codec_ctx初始化：分配结构体，使用p_codec初始化相应成员为默认值
+    // p_codec_ctx = avcodec_alloc_context3(p_codec);
+    // if (p_codec_ctx == NULL)
+    // {
+    //     throw std::runtime_error("avcodec_alloc_context3() failed ");
+    // }
+    // // A5.3.2 p_codec_ctx初始化：p_codec_par ==> p_codec_ctx，初始化相应成员
+    // int ret = avcodec_parameters_to_context(p_codec_ctx, _p_codec_par);
+    // if (ret < 0)
+    // {
+    //     avcodec_free_context(&p_codec_ctx);
+    //     throw std::runtime_error("avcodec_parameters_to_context() failed ");
+    // }
+    // // A5.3.3 p_codec_ctx初始化：使用p_codec初始化p_codec_ctx，初始化完成
+    // ret = avcodec_open2(p_codec_ctx, p_codec, NULL);
+    // if (ret < 0)
+    // {
+    //     avcodec_free_context(&p_codec_ctx);
+    //     throw std::runtime_error("avcodec_open2() failed ");
+    // }
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO))
     {  

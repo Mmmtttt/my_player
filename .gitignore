@@ -2,3 +2,4 @@ build/*
 FFmpeg
 *.mp4
 *.ts
+src/portocol/my_portocol.cpp~RF191eab09.TMP

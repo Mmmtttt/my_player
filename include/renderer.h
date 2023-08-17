@@ -29,11 +29,14 @@ public:
 
     static std::shared_ptr<videoFrame> frame;
 
-private:    SDL_Window*         screen; 
-        SDL_Renderer*       sdl_renderer;
-        SDL_Texture*        sdl_texture;
-        SDL_Rect            sdl_rect;
-        SDL_Thread*         sdl_thread;
+    SDL_Window*         screen; 
+    int width;
+    int height;
+private:    
+    SDL_Renderer*       sdl_renderer;
+    SDL_Texture*        sdl_texture;
+    SDL_Rect            sdl_rect;
+    SDL_Thread*         sdl_thread;
     
 };
 

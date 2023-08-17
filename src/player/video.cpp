@@ -25,6 +25,7 @@ Video::Video(const std::string& filename):filename(filename)
         throw std::runtime_error("avformat_find_stream_info() failed ");
     }
 
+    duration=p_fmt_ctx->duration;
 
     // A3. 查找第一个视频流
     v_idx = -1;
@@ -70,6 +71,9 @@ Video::Video(const std::string& filename):filename(filename)
         avformat_close_input(&p_fmt_ctx);
         throw std::runtime_error("create v_decoder failed\n");
     } 
+    height=v_decoder->height;
+    width=v_decoder->width;
+    screen=v_decoder->renderer->screen;
     
     try{static_a_decoder=std::make_shared<audioDecoder>(a_p_codec_par, a_idx,a_timebase_in_ms);}
     catch(const std::exception& e)
@@ -126,6 +130,7 @@ Video::Video(const std::string& _filename,TYPE type):filename(_filename){
         throw std::runtime_error("avformat_find_stream_info() failed ");
     }
 
+    duration=p_fmt_ctx->duration;
 
     // A3. 查找第一个视频流
     v_idx = -1;
@@ -196,6 +201,9 @@ Video::Video(int _v_idx,AVCodecParameters *_v_p_codec_par,double _v_timebase_in_
         avformat_close_input(&p_fmt_ctx);
         throw std::runtime_error("create v_decoder failed\n");
     } 
+    height=v_decoder->height;
+    width=v_decoder->width;
+    screen=v_decoder->renderer->screen;
     
     try{static_a_decoder=std::make_unique<audioDecoder>(a_p_codec_par, a_idx,a_timebase_in_ms);}
     catch(const std::exception& e)

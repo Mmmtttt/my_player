@@ -79,10 +79,14 @@ void Session::send_Video_information(){
     SEND_ALL(v_size);
     SEND_ALL(a_size);
 
+    SEND_ALL(video->duration);
+
     int a=sizeof(int);
     int b=sizeof(int64_t);
 
-    std::cout<<"Video_info_size : "<<sizeof(*video->v_p_codec_par)+video->v_p_codec_par->extradata_size+sizeof(*video->a_p_codec_par)+video->a_p_codec_par->extradata_size+2*a+2*b<<std::endl;
+    std::cout<<"Video_info_size : "<<sizeof(*video->v_p_codec_par)+video->v_p_codec_par->extradata_size+sizeof(*video->a_p_codec_par)+video->a_p_codec_par->extradata_size+2*a+3*b<<std::endl;
+    std::cout<<"duration : "<<video->duration<<std::endl;
+    std::cout<<"v_timebase_in_ms : "<<video->v_timebase_in_ms<<std::endl;
 }
 
 void Session::send_Packet_information(){
@@ -247,6 +251,9 @@ void Session::receive_Video_information(){
     RECV_ALL(a_size);
 
     video=std::make_shared<Video>(v_idx,&v_p_codec_par,v_timebase_in_ms,a_idx,&a_p_codec_par,a_timebase_in_ms);
+
+    RECV_ALL(video->duration);
+
 }
 
 void Session::receive_Packet_information(){

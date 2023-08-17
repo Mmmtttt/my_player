@@ -20,7 +20,7 @@ videoSdlRenderer::videoSdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<v
                     SDL_WINDOWPOS_UNDEFINED,// 不关心窗口Y坐标
                     p_codec_ctx->width, 
                     p_codec_ctx->height,
-                    SDL_WINDOW_OPENGL
+                    SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
                     );
 
     if (screen == NULL)
@@ -41,11 +41,15 @@ videoSdlRenderer::videoSdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<v
     //     一个SDL_Texture对应一帧YUV数据，同SDL 1.x中的SDL_Overlay
     //     此处第2个参数使用的是SDL中的像素格式，对比参考注释A7
     //     FFmpeg中的像素格式AV_PIX_FMT_YUV420P对应SDL中的像素格式SDL_PIXELFORMAT_IYUV
+    width=p_codec_ctx->width;
+    height=p_codec_ctx->height;
+
+
     sdl_texture = SDL_CreateTexture(sdl_renderer, 
                     SDL_PIXELFORMAT_IYUV, 
                     SDL_TEXTUREACCESS_STREAMING,
-                    p_codec_ctx->width,
-                    p_codec_ctx->height
+                    width,
+                    height
                     );
     if (sdl_texture == NULL)
     {  
@@ -56,8 +60,8 @@ videoSdlRenderer::videoSdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<v
 
     sdl_rect.x = 0;
     sdl_rect.y = 0;
-    sdl_rect.w = p_codec_ctx->width;
-    sdl_rect.h = p_codec_ctx->height;
+    sdl_rect.w = width;
+    sdl_rect.h = height;
 
     
     // B5. 创建定时刷新事件线程，按照预设帧率产生刷新事件
@@ -109,6 +113,26 @@ int videoSdlRenderer::sdl_thread_handle_refreshing(void *opaque)
 }
 
 void videoSdlRenderer::renderFrame(){
+    SDL_DestroyTexture(sdl_texture);
+    sdl_texture = SDL_CreateTexture(sdl_renderer, 
+                    SDL_PIXELFORMAT_IYUV, 
+                    SDL_TEXTUREACCESS_STREAMING,
+                    width,
+                    height
+                    );
+    if (sdl_texture == NULL)
+    {  
+        SDL_DestroyWindow(screen);
+        SDL_DestroyRenderer(sdl_renderer);
+        throw std::runtime_error("SDL_CreateTexture() failed: ");  
+    }
+
+    sdl_rect.x = 0;
+    sdl_rect.y = 0;
+    sdl_rect.w = width;
+    sdl_rect.h = height;
+
+
     // B7. 使用新的YUV像素数据更新SDL_Rect
     SDL_UpdateYUVTexture(sdl_texture,                   // sdl texture
             &sdl_rect,                     // sdl rect

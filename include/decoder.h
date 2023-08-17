@@ -39,12 +39,16 @@ class videoDecoder:public Decoder{
         int decode_One_frame();
 
         void get_Packet();
+        void init_SwsContext();
 
         std::shared_ptr<packetQueue> video_packet_queue;
 
         std::unique_ptr<videoSdlRenderer> renderer;
         std::shared_ptr<videoFrame> frame;
         SwsContext* sws_ctx = NULL; 
+
+        int *width;
+        int *height;
 
         
         static int duration;  //当前帧的duration

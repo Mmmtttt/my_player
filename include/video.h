@@ -30,8 +30,10 @@ public:
     double a_timebase_in_ms;
 
 
-    // int width;
-    // int height;
+    int *width;
+    int *height;
+    int64_t duration;
+    SDL_Window* screen;
     // int i;
     int v_idx;
     int a_idx;

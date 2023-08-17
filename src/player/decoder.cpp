@@ -122,7 +122,19 @@ videoDecoder::videoDecoder(AVCodecParameters *_p_codec_par,int _idx,double _time
         throw std::runtime_error("create renderer failed\n");
     }
 
+    width=&renderer->width;
+    height=&renderer->height;
 
+
+    init_SwsContext();
+}
+
+videoDecoder::~videoDecoder(){
+    sws_freeContext(sws_ctx);
+    std::cout<<"videoDecoder destoryed"<<std::endl;
+}
+
+void videoDecoder::init_SwsContext(){
     // A7. 初始化SWS context，用于后续图像转换
     //     此处第6个参数使用的是FFmpeg中的像素格式，对比参考注释B4
     //     FFmpeg中的像素格式AV_PIX_FMT_YUV420P对应SDL中的像素格式SDL_PIXELFORMAT_IYUV
@@ -132,8 +144,8 @@ videoDecoder::videoDecoder(AVCodecParameters *_p_codec_par,int _idx,double _time
     sws_ctx = sws_getContext(p_codec_ctx->width,    // src width
                 p_codec_ctx->height,   // src height
                 p_codec_ctx->pix_fmt,  // src format
-                p_codec_ctx->width,    // dst width
-                p_codec_ctx->height,   // dst height
+                *width,    // dst width
+                *height,   // dst height
                 AV_PIX_FMT_YUV420P,    // dst format
                 SWS_BICUBIC,           // flags
                 NULL,                  // src filter
@@ -147,13 +159,11 @@ videoDecoder::videoDecoder(AVCodecParameters *_p_codec_par,int _idx,double _time
     }
 }
 
-videoDecoder::~videoDecoder(){
-    sws_freeContext(sws_ctx);
-    std::cout<<"videoDecoder destoryed"<<std::endl;
-}
-
-
 void videoDecoder::sws_scaling(){
+    if(*width!=p_codec_ctx->width||*height!=p_codec_ctx->height){
+        init_SwsContext();
+    }
+
     // A10. 图像转换：p_frm_raw->data ==> p_frm_yuv->data
     // 将源图像中一片连续的区域经过处理后更新到目标图像对应区域，处理的图像区域必须逐行连续
     // plane: 如YUV有Y、U、V三个plane，RGB有R、G、B三个plane
@@ -221,40 +231,7 @@ std::shared_ptr<audioDecoder> static_a_decoder;
 
 audioDecoder::audioDecoder(AVCodecParameters *_p_codec_par,int _idx,double _timebase_in_ms):Decoder(_p_codec_par,_idx,_timebase_in_ms){
     
-    
-    
-    // A5.1 获取解码器参数AVCodecParameters
-    // AVCodecParameters *p_codec_par = _p_fmt_ctx->streams[_idx]->codecpar;
 
-    // A5.2 获取解码器
-    // const AVCodec* p_codec = avcodec_find_decoder(_p_codec_par->codec_id);
-    // if (p_codec == NULL)
-    // {
-    //     throw std::runtime_error("Cann't find codec!");
-    // }
-
-
-    // // A5.3 构建解码器AVCodecContext
-    // // A5.3.1 p_codec_ctx初始化：分配结构体，使用p_codec初始化相应成员为默认值
-    // p_codec_ctx = avcodec_alloc_context3(p_codec);
-    // if (p_codec_ctx == NULL)
-    // {
-    //     throw std::runtime_error("avcodec_alloc_context3() failed ");
-    // }
-    // // A5.3.2 p_codec_ctx初始化：p_codec_par ==> p_codec_ctx，初始化相应成员
-    // int ret = avcodec_parameters_to_context(p_codec_ctx, _p_codec_par);
-    // if (ret < 0)
-    // {
-    //     avcodec_free_context(&p_codec_ctx);
-    //     throw std::runtime_error("avcodec_parameters_to_context() failed ");
-    // }
-    // // A5.3.3 p_codec_ctx初始化：使用p_codec初始化p_codec_ctx，初始化完成
-    // ret = avcodec_open2(p_codec_ctx, p_codec, NULL);
-    // if (ret < 0)
-    // {
-    //     avcodec_free_context(&p_codec_ctx);
-    //     throw std::runtime_error("avcodec_open2() failed ");
-    // }
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO))
     {  

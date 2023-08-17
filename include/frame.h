@@ -24,10 +24,13 @@ public:
     videoFrame(AVCodecContext* p_codec_ctx);
     ~videoFrame();
 
+    void init_Buffer();
 
     AVFrame* p_frm_raw = NULL; 
     AVFrame* p_frm_yuv = NULL; 
-    AVRational timebase;
+    //AVRational timebase;
+    int width;
+    int height;
 private:     
     int  buf_size;
     uint8_t* buffer = NULL;

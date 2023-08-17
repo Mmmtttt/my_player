@@ -41,27 +41,12 @@ videoSdlRenderer::videoSdlRenderer(AVCodecContext* p_codec_ctx,std::shared_ptr<v
     //     一个SDL_Texture对应一帧YUV数据，同SDL 1.x中的SDL_Overlay
     //     此处第2个参数使用的是SDL中的像素格式，对比参考注释A7
     //     FFmpeg中的像素格式AV_PIX_FMT_YUV420P对应SDL中的像素格式SDL_PIXELFORMAT_IYUV
-    width=p_codec_ctx->width;
-    height=p_codec_ctx->height;
+    // width=p_codec_ctx->width;
+    // height=p_codec_ctx->height;
+    width=&frame->width;
+    height=&frame->height;
 
-
-    sdl_texture = SDL_CreateTexture(sdl_renderer, 
-                    SDL_PIXELFORMAT_IYUV, 
-                    SDL_TEXTUREACCESS_STREAMING,
-                    width,
-                    height
-                    );
-    if (sdl_texture == NULL)
-    {  
-        SDL_DestroyWindow(screen);
-        SDL_DestroyRenderer(sdl_renderer);
-        throw std::runtime_error("SDL_CreateTexture() failed: ");  
-    }
-
-    sdl_rect.x = 0;
-    sdl_rect.y = 0;
-    sdl_rect.w = width;
-    sdl_rect.h = height;
+    init_SDL_Texture();
 
     
     // B5. 创建定时刷新事件线程，按照预设帧率产生刷新事件
@@ -84,7 +69,26 @@ videoSdlRenderer::~videoSdlRenderer()
     std::cout<<"videoSdlRenderer destoryed"<<std::endl;
 }
 
+void videoSdlRenderer::init_SDL_Texture(){
+    frame->init_Buffer();
+    sdl_texture = SDL_CreateTexture(sdl_renderer, 
+                    SDL_PIXELFORMAT_IYUV, 
+                    SDL_TEXTUREACCESS_STREAMING,
+                    *width,
+                    *height
+                    );
+    if (sdl_texture == NULL)
+    {  
+        SDL_DestroyWindow(screen);
+        SDL_DestroyRenderer(sdl_renderer);
+        throw std::runtime_error("SDL_CreateTexture() failed: ");  
+    }
 
+    sdl_rect.x = 0;
+    sdl_rect.y = 0;
+    sdl_rect.w = *width;
+    sdl_rect.h = *height;
+}
 
 
 // 按照opaque传入的播放帧率参数，按固定间隔时间发送刷新事件
@@ -113,24 +117,11 @@ int videoSdlRenderer::sdl_thread_handle_refreshing(void *opaque)
 }
 
 void videoSdlRenderer::renderFrame(){
-    SDL_DestroyTexture(sdl_texture);
-    sdl_texture = SDL_CreateTexture(sdl_renderer, 
-                    SDL_PIXELFORMAT_IYUV, 
-                    SDL_TEXTUREACCESS_STREAMING,
-                    width,
-                    height
-                    );
-    if (sdl_texture == NULL)
-    {  
-        SDL_DestroyWindow(screen);
-        SDL_DestroyRenderer(sdl_renderer);
-        throw std::runtime_error("SDL_CreateTexture() failed: ");  
+    if(*width!=sdl_rect.w||*height!=sdl_rect.h){
+        frame->init_Buffer();
+        SDL_DestroyTexture(sdl_texture);
+        init_SDL_Texture();
     }
-
-    sdl_rect.x = 0;
-    sdl_rect.y = 0;
-    sdl_rect.w = width;
-    sdl_rect.h = height;
 
 
     // B7. 使用新的YUV像素数据更新SDL_Rect

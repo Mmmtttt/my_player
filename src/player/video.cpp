@@ -280,7 +280,21 @@ void Video::play(){
             {
                 time_shaft=20*60*1000;
             }
+            else if (sdl_event.key.keysym.sym == SDLK_8)
+            {
+                *height=720;
+                *width=1800;
+            }
+            else if (sdl_event.key.keysym.sym == SDLK_7)
+            {
+                *height=800;
+                *width=720;
+            }
             
+        }
+        if (sdl_event.type == SDL_WINDOWEVENT && sdl_event.window.event == SDL_WINDOWEVENT_RESIZED){
+            *height=sdl_event.window.data2;
+            *width=sdl_event.window.data1;
         }
         else if (sdl_event.type == SDL_QUIT)
         {

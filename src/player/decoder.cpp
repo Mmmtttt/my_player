@@ -122,8 +122,12 @@ videoDecoder::videoDecoder(AVCodecParameters *_p_codec_par,int _idx,double _time
         throw std::runtime_error("create renderer failed\n");
     }
 
-    width=&renderer->width;
-    height=&renderer->height;
+    width=&frame->width;
+    height=&frame->height;
+
+
+    *width=p_codec_ctx->width;
+    *height=p_codec_ctx->height;
 
 
     init_SwsContext();
@@ -135,6 +139,7 @@ videoDecoder::~videoDecoder(){
 }
 
 void videoDecoder::init_SwsContext(){
+    renderer->init_SDL_Texture();
     // A7. 初始化SWS context，用于后续图像转换
     //     此处第6个参数使用的是FFmpeg中的像素格式，对比参考注释B4
     //     FFmpeg中的像素格式AV_PIX_FMT_YUV420P对应SDL中的像素格式SDL_PIXELFORMAT_IYUV
@@ -160,7 +165,7 @@ void videoDecoder::init_SwsContext(){
 }
 
 void videoDecoder::sws_scaling(){
-    if(*width!=p_codec_ctx->width||*height!=p_codec_ctx->height){
+    if(*width!=renderer->sdl_rect.w||*height!=renderer->sdl_rect.h){
         init_SwsContext();
     }
 

@@ -7,7 +7,8 @@
         "include",
         "${workspaceFolder}/libs_win/develop/ffmpeg-n5.1-latest-win64-gpl-shared-5.1/include",
         "${workspaceFolder}/libs_win/develop/SDL2-2.0.9/include",
-        "${workspaceFolder}/libs_win/develop"
+        "${workspaceFolder}/libs_win/develop",
+        "J:/Qt/6.3.2/mingw_64/include/**"
       ],
       "compilerPath": "C:/mingw64/bin/g++.exe",
       "cStandard": "${default}",

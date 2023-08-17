@@ -100,6 +100,8 @@
     "codecvt": "cpp",
     "forward_list": "cpp",
     "numeric": "cpp",
-    "valarray": "cpp"
-  }
+    "valarray": "cpp",
+    "qlcdnumber": "cpp"
+  },
+  "qttools.creator": "J:\\Qt\\Tools\\QtCreator\\bin"
 }

@@ -5,7 +5,9 @@
       "name": "C/C++ Runner: Debug Session",
       "type": "cppdbg",
       "request": "launch",
-      "args": ["1.mp4"],
+      "args": [
+        "1.mp4"
+      ],
       "stopAtEntry": false,
       "externalConsole": true,
       "cwd": "J:/transform/Homework/C++/my_player",
@@ -18,7 +20,8 @@
           "text": "-enable-pretty-printing",
           "ignoreFailures": true
         }
-      ]
+      ],
+      "visualizerFile": "c:\\Users\\Administrator\\AppData\\Roaming\\Code\\User\\workspaceStorage\\a8794cd8a2816932e603295ab776468a\\tonka3000.qtvsctools\\qt.natvis.xml"
     }
   ]
 }

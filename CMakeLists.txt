@@ -1,5 +1,19 @@
-cmake_minimum_required(VERSION 3.0)
-project(MyPlayer)
+cmake_minimum_required(VERSION 3.5)
+project(MyPlayer VERSION 0.1 LANGUAGES CXX)
+
+# Qt相关
+set(CMAKE_AUTOUIC ON)
+# Qt's Meta-Object Compiler
+set(CMAKE_AUTOMOC ON)
+# Qt资源系统
+set(CMAKE_AUTORCC ON)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 set(CMAKE_BUILD_TYPE Debug)
 
@@ -18,6 +32,8 @@ set(PLAYER
     src/connect/connect.cpp
     src/connect/transport_session.cpp
     src/portocol/my_portocol.cpp
+    
+    
     libs_win/develop/json.hpp
     # 添加其他源文件
 )
@@ -42,14 +58,25 @@ link_directories (
 add_executable(MyPlayer ${PLAYER} main.cpp )
 add_executable(serverMyPlayer ${PLAYER} src/connect/server.cpp )
 add_executable(clientMyPlayer ${PLAYER} src/connect/client.cpp )
+add_executable(Main2 
+    ${PLAYER} 
+    main2.cpp 
+    src/player/player.cpp
+    src/mainwindow.cpp
+    build/Main2_autogen/6YEA5652QU/moc_mainwindow.cpp
+    build/Main2_autogen/6YEA5652QU/moc_player.cpp
+    #include/player.cpp
+    #include/mainwindow.cpp
+    )
 
 
 set_target_properties(MyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 set_target_properties(serverMyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 set_target_properties(clientMyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
+set_target_properties(Main2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 # 链接 FFmpeg 库
-target_link_libraries(MyPlayer
+target_link_libraries(MyPlayer PRIVATE
     avcodec.lib
     avformat.lib
     avutil.lib
@@ -58,8 +85,9 @@ target_link_libraries(MyPlayer
     SDL2main.lib
     SDL2.lib
     ws2_32
+    Qt${QT_VERSION_MAJOR}::Widgets
 )
-target_link_libraries(serverMyPlayer
+target_link_libraries(serverMyPlayer PRIVATE
     avcodec.lib
     avformat.lib
     avutil.lib
@@ -68,8 +96,9 @@ target_link_libraries(serverMyPlayer
     SDL2main.lib
     SDL2.lib
     ws2_32
+    Qt${QT_VERSION_MAJOR}::Widgets
 )
-target_link_libraries(clientMyPlayer
+target_link_libraries(clientMyPlayer PRIVATE
     avcodec.lib
     avformat.lib
     avutil.lib
@@ -78,4 +107,17 @@ target_link_libraries(clientMyPlayer
     SDL2main.lib
     SDL2.lib
     ws2_32
+    Qt${QT_VERSION_MAJOR}::Widgets
+)
+target_link_libraries(Main2 PRIVATE
+    Qt${QT_VERSION_MAJOR}::Widgets
+    avcodec.lib
+    avformat.lib
+    avutil.lib
+    swresample.lib
+    swscale.lib
+    SDL2main.lib
+    SDL2.lib
+    ws2_32
+    
 )

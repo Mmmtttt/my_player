@@ -280,11 +280,6 @@ void Video::play(){
             {
                 time_shaft=20*60*1000;
             }
-            else if (sdl_event.key.keysym.sym == SDLK_8)
-            {
-                *height=720;
-                *width=1800;
-            }
             else if (sdl_event.key.keysym.sym == SDLK_7)
             {
                 *height=800;

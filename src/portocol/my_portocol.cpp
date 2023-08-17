@@ -24,27 +24,27 @@ int Recv_Message(SOCKET socket, std::string& message){
 }
 
 int Send_Filenames(SOCKET clientSocket){
-    WIN32_FIND_DATA findData;
-    HANDLE hFind = FindFirstFile("*", &findData);
+    // WIN32_FIND_DATA findData;
+    // HANDLE hFind = FindFirstFile("*", &findData);
 
-    if (hFind != INVALID_HANDLE_VALUE) {
-        json fileList;
-        do {
-            if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-                continue;
-            }
-            fileList.push_back(findData.cFileName);
-        } while (FindNextFile(hFind, &findData) != 0);
+    // if (hFind != INVALID_HANDLE_VALUE) {
+    //     json fileList;
+    //     do {
+    //         if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+    //             continue;
+    //         }
+    //         fileList.push_back(findData.cFileName);
+    //     } while (FindNextFile(hFind, &findData) != 0);
 
-        FindClose(hFind);
+    //     FindClose(hFind);
 
-        // Serialize JSON and send
-        std::string jsonStr = fileList.dump();
-        // int length=jsonStr.length();
-        // send(clientSocket, (const char *)&length,sizeof(length),0);
-        // send(clientSocket, jsonStr.c_str(), length, 0);
-        return Send_Message(clientSocket,jsonStr);
-    }
+    //     // Serialize JSON and send
+    //     std::string jsonStr = fileList.dump();
+    //     // int length=jsonStr.length();
+    //     // send(clientSocket, (const char *)&length,sizeof(length),0);
+    //     // send(clientSocket, jsonStr.c_str(), length, 0);
+    //     return Send_Message(clientSocket,jsonStr);
+    // }
     
 }
 

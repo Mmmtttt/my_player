@@ -101,5 +101,6 @@ protected:
 
     void resizeEvent(QResizeEvent *event) override ;
 };
+//#include "player.moc"
 
 #endif // PLAYER_H

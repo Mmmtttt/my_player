@@ -26,3 +26,5 @@ void MainWindow::openSecondWindow()
     mainWin.show();
     mainWin.video->play();
 }
+
+//#include "mainwindow.moc"

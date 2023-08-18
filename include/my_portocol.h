@@ -2,6 +2,7 @@
 #define MY_PORTCOL
 
 #include "json.hpp"
+#include <winsock2.h>
 #include <windows.h>
 #include "win_net.h"
 

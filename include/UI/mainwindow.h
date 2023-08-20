@@ -17,6 +17,8 @@
 #include "permissionwindow.h"
 #include "ui_mainwindow.h"
 
+#include "player.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE

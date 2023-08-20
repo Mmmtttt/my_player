@@ -14,6 +14,7 @@
 
 #include "fileiconmapper.h"
 
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class Filesystem; }
 QT_END_NAMESPACE

@@ -3,6 +3,8 @@
 
 #include <QString>
 #include <QJsonObject>
+#include "player.h"
+
 
 enum FileType {
     Folder,

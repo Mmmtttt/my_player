@@ -1,6 +1,6 @@
 ﻿#include <QProcess>
 #include "mainwindow.h"
-#include "player.h"
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)

@@ -138,8 +138,9 @@ void Filesystem::openFile(const File &file) {
     // 根据文件类型执行打开操作，例如展示详细信息窗口
     QString fileTypeName;
     switch (file.getFileType()) {
-    case Folder: fileTypeName = "文件夹"; currentDir.cd(file.getName()) ;refresh();break;
-        case Video: fileTypeName = "视频"; break;
+        case Folder: fileTypeName = "文件夹"; currentDir.cd(file.getName()) ;refresh();break;
+        case Video: fileTypeName = "视频";{Player player(this,(currentDir.path()+'/'+file.getName()).toStdString());
+                                            player.show();player.play();}  break;
         case Image: fileTypeName = "图片"; break;
         case Text: fileTypeName = "文本"; break;
     }

@@ -13,6 +13,10 @@ Player::Player(QWidget *parent,std::string _name) : QMainWindow(parent),name(_na
 
 }
 
+void Player::play(){
+    video->play();
+}
+
 void Player::inital(SDL_Window *sdlWindow){
     // 创建一个 SDL 窗口来播放视频
     SDL_SysWMinfo wmInfo;

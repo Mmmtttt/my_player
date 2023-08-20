@@ -46,7 +46,7 @@ public:
         delete screen_widget;
         delete centrallayout;
     }
-    void play(){video->play();}
+    void play();
     void inital(SDL_Window *sdlWindow);
 
 private:

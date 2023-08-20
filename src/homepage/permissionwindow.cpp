@@ -6,6 +6,9 @@ PermissionWindow::PermissionWindow(QWidget *parent) :
     ui(new Ui::PermissionWindow)
 {
     ui->setupUi(this);
+
+    filesystem=new Filesystem(parent);
+    filesystem->show();
 }
 
 PermissionWindow::~PermissionWindow()

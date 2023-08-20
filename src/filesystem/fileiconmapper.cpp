@@ -2,11 +2,11 @@
 
 FileIconMapper::FileIconMapper()
 {
-    iconMap[Folder] = ":/icons/folder.jpg";
+    iconMap[Folder] = ":/icons/folder.png";
     iconMap[Text] = ":/icons/text.png";
-    iconMap[Video] = ":/icons/video.jpg";
+    iconMap[Video] = ":/icons/video.png";
     iconMap[Image] = ":/icons/image.png";
-    iconMap[Other] = ":/icons/other.jpg";
+    iconMap[Other] = ":/icons/other.png";
 
     load_types();
     extensionMap["folder"]=Folder;

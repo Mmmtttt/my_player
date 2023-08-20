@@ -1,9 +1,9 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-    <file>icons/folder.jpg</file>
-    <file>icons/video.jpg</file>
+    <file>icons/folder.png</file>
+    <file>icons/video.png</file>
     <file>icons/image.png</file>
     <file>icons/text.png</file>
-    <file>icons/other.jpg</file>
+    <file>icons/other.png</file>
 </qresource>
 </RCC>

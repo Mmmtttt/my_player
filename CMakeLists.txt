@@ -18,6 +18,12 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 set(CMAKE_BUILD_TYPE Debug)
 
+
+
+
+
+
+
 # 设置源代码目录
 set(PLAYER
     #main.cpp
@@ -47,6 +53,15 @@ set(HOMEPAGE
     src/homepage/userwindow.cpp
 )
 
+set(FILESYSTEM
+    src/filesystem/Filesystem.cpp
+    src/filesystem/file.cpp
+    src/filesystem/fileiconmapper.cpp
+)
+
+
+
+
 # 设置头文件目录
 include_directories(
     include 
@@ -65,12 +80,18 @@ link_directories (
     ${CMAKE_SOURCE_DIR}/libs_win/runtime
     )
 
+
+
+
+
+
 set(MOCFILES
     include/player.h
     include/UI/mainwindow.h
     include/UI/settingswindow.h
     include/UI/permissionwindow.h
-    include/UI/userwindow.h )
+    include/UI/userwindow.h 
+    include/UI/Filesystem.h )
 qt6_wrap_cpp(MOC_SOURCES ${MOCFILES})
 
 
@@ -78,8 +99,16 @@ set(UICFILES
     src/homepage/mainwindow.ui
     src/homepage/settingswindow.ui
     src/homepage/permissionwindow.ui
-    src/homepage/userwindow.ui)
+    src/homepage/userwindow.ui
+    src/filesystem/Filesystem.ui)
 qt6_wrap_ui(UI_HEADERS ${UICFILES})
+
+
+
+qt6_add_resources(RESOURCES include/UI/resources.qrc)
+
+
+
 
 
 # 添加可执行文件生成
@@ -87,11 +116,16 @@ add_executable(MyPlayer ${PLAYER} main.cpp )
 add_executable(serverMyPlayer ${PLAYER} src/connect/server.cpp )
 add_executable(clientMyPlayer ${PLAYER} src/connect/client.cpp )
 add_executable(Main2 
-    ${PLAYER} 
     ${UI_HEADERS}
-    main2.cpp 
-    ${HOMEPAGE}
     ${MOC_SOURCES}
+    ${RESOURCES}
+ 
+    
+    ${PLAYER}
+    ${HOMEPAGE}
+    ${FILESYSTEM}
+    
+    main2.cpp
 )
 
 

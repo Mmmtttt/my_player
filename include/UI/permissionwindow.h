@@ -2,6 +2,7 @@
 #define PERMISSIONWINDOW_H
 
 #include <QWidget>
+#include "Filesystem.h"
 
 namespace Ui {
 class PermissionWindow;
@@ -17,6 +18,7 @@ public:
 
 private:
     Ui::PermissionWindow *ui;
+    Filesystem *filesystem;
 };
 
 #endif // PERMISSIONWINDOW_H

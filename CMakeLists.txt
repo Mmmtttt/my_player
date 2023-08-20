@@ -39,6 +39,14 @@ set(PLAYER
     # 添加其他源文件
 )
 
+set(HOMEPAGE
+    src/player/player.cpp
+    src/homepage/mainwindow.cpp
+    src/homepage/permissionwindow.cpp
+    src/homepage/settingswindow.cpp
+    src/homepage/userwindow.cpp
+)
+
 # 设置头文件目录
 include_directories(
     include 
@@ -82,13 +90,9 @@ add_executable(Main2
     ${PLAYER} 
     ${UI_HEADERS}
     main2.cpp 
-    src/player/player.cpp
-    src/homepage/mainwindow.cpp
-    src/homepage/permissionwindow.cpp
-    src/homepage/settingswindow.cpp
-    src/homepage/userwindow.cpp
+    ${HOMEPAGE}
     ${MOC_SOURCES}
-    )
+)
 
 
 set_target_properties(MyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
@@ -96,8 +100,10 @@ set_target_properties(serverMyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE
 set_target_properties(clientMyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set_target_properties(Main2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
+
+
 # 链接 FFmpeg 库
-target_link_libraries(MyPlayer PRIVATE
+set(NET_FF_SDL_LIBRARIES
     avcodec.lib
     avformat.lib
     avutil.lib
@@ -106,36 +112,19 @@ target_link_libraries(MyPlayer PRIVATE
     SDL2main.lib
     SDL2.lib
     ws2_32
+)
+
+target_link_libraries(MyPlayer PRIVATE
+    ${NET_FF_SDL_LIBRARIES}
 )
 target_link_libraries(serverMyPlayer PRIVATE
-    avcodec.lib
-    avformat.lib
-    avutil.lib
-    swresample.lib
-    swscale.lib
-    SDL2main.lib
-    SDL2.lib
-    ws2_32
+    ${NET_FF_SDL_LIBRARIES}
 )
 target_link_libraries(clientMyPlayer PRIVATE
-    avcodec.lib
-    avformat.lib
-    avutil.lib
-    swresample.lib
-    swscale.lib
-    SDL2main.lib
-    SDL2.lib
-    ws2_32
+    ${NET_FF_SDL_LIBRARIES}
 )
 target_link_libraries(Main2 PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
-    avcodec.lib
-    avformat.lib
-    avutil.lib
-    swresample.lib
-    swscale.lib
-    SDL2main.lib
-    SDL2.lib
-    ws2_32
+    ${NET_FF_SDL_LIBRARIES}
     Qt6::Core
 )

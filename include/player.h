@@ -12,6 +12,7 @@
 #include <QLCDNumber>
 #include <QTcpSocket>
 #include "video.h"
+#include "transport_session.h"
 
 enum PLAYER_TYPE{
     LOCAL,
@@ -22,7 +23,7 @@ class Player : public QMainWindow
 {
     Q_OBJECT
 public:
-    Player(QWidget *parent = nullptr,std::string name = "1.mp4",PLAYER_TYPE type=LOCAL);
+    Player(QWidget *parent = nullptr,std::string name = "1.mp4",PLAYER_TYPE type=LOCAL,SOCKET=-1);
 
 
 
@@ -41,8 +42,9 @@ public:
     QLabel totalTimeLabel;
 
     QTimer timer;
-    std::unique_ptr<Video> video;
-    QTcpSocket *socket;
+    std::shared_ptr<Video> video;
+    std::unique_ptr<Session> session;
+    SOCKET socket;
     std::string name;
     PLAYER_TYPE TYPE;
 

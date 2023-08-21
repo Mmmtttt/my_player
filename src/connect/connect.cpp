@@ -107,7 +107,8 @@ void Client::startConnection() {
         int ret =Send_FileName(connect_socket,name);
         if(ret<=0){std::cout<<"connect failed"<<std::endl;return;}
 
-        try{Session session(name,connect_socket,CLIENT);}
+        try{Session session(name,connect_socket,CLIENT);
+        session.play();}
         catch(const std::exception& e){std::cout<<e.what()<<std::endl;}
     }
     closesocket(connect_socket);

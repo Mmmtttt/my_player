@@ -24,7 +24,7 @@ class Filesystem : public QMainWindow
     Q_OBJECT
 
 public:
-    Filesystem(QWidget *parent = nullptr);
+    Filesystem(QWidget *parent = nullptr,PLAYER_TYPE TYPE=LOCAL);
     ~Filesystem();
 
     void refresh();
@@ -44,6 +44,7 @@ private:
     FileIconMapper iconMapper;
     QToolButton *refreshbutton;
     QDir currentDir;
+    PLAYER_TYPE TYPE;
 
     void addFileToList(const File &file, FileType filetype);
     void openFile(const File &file);

@@ -44,24 +44,28 @@ Session::Session(std::string filename,SOCKET socket,TYPE type){
         if(message=="NOT_FOUND"){close=true; return;};
 
         receive_Video_information();
-        video_packet_queue=video->video_packet_queue;
-        audio_packet_queue=video->audio_packet_queue;
+        
         receive_Packet_information();
-        std::thread receive_data_thread([&]{
-            receive_Data();
-        });
-        video->play();
-        std::string message2("exit");
-        Send_Message(client_socket,message2);
-
-        //close=true;
-        std::cout<<"waiting join"<<std::endl;
-        receive_data_thread.join();
-        std::cout<<"joined"<<std::endl;
+        
+        
     }
 }
 
 Session::~Session(){std::cout<<"session destory"<<std::endl;}
+
+void Session::play(){
+    std::thread receive_data_thread([&]{
+            receive_Data();
+        });
+    video->play();
+    std::string message2("exit");
+    Send_Message(client_socket,message2);
+
+    //close=true;
+    std::cout<<"waiting join"<<std::endl;
+    receive_data_thread.join();
+    std::cout<<"joined"<<std::endl;
+}
 
 void Session::send_Video_information(){
     SEND_ALL(video->v_idx);
@@ -253,6 +257,9 @@ void Session::receive_Video_information(){
     video=std::make_shared<Video>(v_idx,&v_p_codec_par,v_timebase_in_ms,a_idx,&a_p_codec_par,a_timebase_in_ms);
 
     RECV_ALL(video->duration);
+
+    video_packet_queue=video->video_packet_queue;
+    audio_packet_queue=video->audio_packet_queue;
 
 }
 

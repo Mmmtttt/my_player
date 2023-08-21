@@ -7,8 +7,8 @@
 
 
 
-Filesystem::Filesystem(QWidget *parent)
-    : QMainWindow(parent)
+Filesystem::Filesystem(QWidget *parent,PLAYER_TYPE _TYPE)
+    : QMainWindow(parent),TYPE(_TYPE)
     , ui(new Ui::Filesystem)
 {
     ui->setupUi(this);
@@ -143,6 +143,8 @@ void Filesystem::openFile(const File &file) {
                                             //player.show();player.play();
                                             QStringList arguments;
                                             arguments <<currentDir.path()+'/'+file.getName();
+                                            if(TYPE==REMOTE) arguments <<"REMOTE";
+                                            else arguments <<"LOCAL";
                                             QProcess *process=new QProcess(this);
                                             process->start("Process.exe", arguments);
                                             connect(process, &QProcess::finished, process, &QProcess::deleteLater);

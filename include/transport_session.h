@@ -22,6 +22,10 @@ class Session{
 
         bool close=false;
 
+        void play();
+
+
+
         void send_Video_information();
         void send_Packet_information();
         void send_Data();

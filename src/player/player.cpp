@@ -1,21 +1,33 @@
 #include "player.h"
 
-Player::Player(QWidget *parent,std::string _name,PLAYER_TYPE _TYPE) : QMainWindow(parent),name(_name),TYPE(_TYPE){
+Player::Player(QWidget *parent,std::string _name,PLAYER_TYPE _TYPE,SOCKET _socket) :
+                                        QMainWindow(parent),name(_name),TYPE(_TYPE),socket(_socket)
+{
     timer.start(1000); // 1 second interval
     connect(&timer, &QTimer::timeout, this, &Player::updateProgress);
     connect(this,&Player::actionSignal,this,&Player::actionSlots);
     centrallayout = new QVBoxLayout();
 
-    video=std::make_unique<Video>(name);
-    video->push_All_Packets();
-    SDL_Window *sdlWindow = video->screen;
+    SDL_Window *sdlWindow;
+    if(TYPE==LOCAL){
+        video=std::make_shared<Video>(name);
+        video->push_All_Packets();
+        sdlWindow = video->screen;
+    }
+    else{
+        session=std::make_unique<Session>(name,socket,CLIENT);
+        video=session->video;
+        sdlWindow = session->video->screen;
+    }
+
 
     inital(sdlWindow);
 
 }
 
 void Player::play(){
-    video->play();
+    if(TYPE==LOCAL)video->play();
+    else session->play();
 }
 
 void Player::inital(SDL_Window *sdlWindow){

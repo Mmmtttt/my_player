@@ -5,5 +5,8 @@
     <file>icons/image.png</file>
     <file>icons/text.png</file>
     <file>icons/other.png</file>
+    <file>icons/permission.png</file>
+    <file>icons/settings.png</file>
+    <file>icons/user.png</file>
 </qresource>
 </RCC>

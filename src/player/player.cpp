@@ -1,6 +1,6 @@
 #include "player.h"
 
-Player::Player(QWidget *parent,std::string _name) : QMainWindow(parent),name(_name){
+Player::Player(QWidget *parent,std::string _name,PLAYER_TYPE _TYPE) : QMainWindow(parent),name(_name),TYPE(_TYPE){
     timer.start(1000); // 1 second interval
     connect(&timer, &QTimer::timeout, this, &Player::updateProgress);
     connect(this,&Player::actionSignal,this,&Player::actionSlots);

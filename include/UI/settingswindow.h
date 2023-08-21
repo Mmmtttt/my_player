@@ -2,6 +2,7 @@
 #define SETTINGSWINDOW_H
 
 #include <QWidget>
+#include "Filesystem.h"
 
 namespace Ui {
 class SettingsWindow;
@@ -17,6 +18,7 @@ public:
 
 private:
     Ui::SettingsWindow *ui;
+    Filesystem *filesystem;
 };
 
 #endif // SETTINGSWINDOW_H

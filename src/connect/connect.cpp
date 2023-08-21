@@ -102,9 +102,9 @@ void Client::startConnection() {
     while(true){
         WSADATA wsaData;
         WSAStartup(MAKEWORD(2, 2), &wsaData);
-        int ret=Receive_FileNames(connect_socket);
+        //int ret=Receive_FileNames(connect_socket);
         std::string name;
-        ret *=Send_FileName(connect_socket,name);
+        int ret =Send_FileName(connect_socket,name);
         if(ret<=0){std::cout<<"connect failed"<<std::endl;return;}
 
         try{Session session(name,connect_socket,CLIENT);}
@@ -123,9 +123,9 @@ Connection::~Connection() {
 
 void Connection::processRequest() {
     while(true){
-        int ret=Send_Filenames(socket);
+        //int ret=Send_Filenames(socket);
         std::string name;
-        ret *=Receive_FileName(socket,name);
+        int ret =Receive_FileName(socket,name);
         if(ret<=0){std::cout<<"connect failed"<<std::endl;return;}
         if(name=="q")break;
         try{Session session(name,socket,SERVER);}

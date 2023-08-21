@@ -10,13 +10,19 @@
 #include <QMouseEvent>
 #include <QTimer>
 #include <QLCDNumber>
+#include <QTcpSocket>
 #include "video.h"
+
+enum PLAYER_TYPE{
+    LOCAL,
+    REMOTE
+};
 
 class Player : public QMainWindow
 {
     Q_OBJECT
 public:
-    Player(QWidget *parent = nullptr,std::string name = "1.mp4");
+    Player(QWidget *parent = nullptr,std::string name = "1.mp4",PLAYER_TYPE type=LOCAL);
 
 
 
@@ -36,7 +42,9 @@ public:
 
     QTimer timer;
     std::unique_ptr<Video> video;
+    QTcpSocket *socket;
     std::string name;
+    PLAYER_TYPE TYPE;
 
     int64_t totalTime;
 

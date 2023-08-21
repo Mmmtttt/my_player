@@ -5,6 +5,9 @@ SettingsWindow::SettingsWindow(QWidget *parent) :
     ui(new Ui::SettingsWindow)
 {
     ui->setupUi(this);
+
+    filesystem=new Filesystem(parent);
+    layout()->addWidget(filesystem);
 }
 
 SettingsWindow::~SettingsWindow()

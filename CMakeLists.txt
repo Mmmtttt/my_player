@@ -12,8 +12,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network)
 
 
 set(CMAKE_BUILD_TYPE Debug)
@@ -172,10 +172,12 @@ target_link_libraries(clientMyPlayer PRIVATE
 target_link_libraries(Main2 PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     ${NET_FF_SDL_LIBRARIES}
-    Qt6::Core
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Network
 )
 target_link_libraries(Process PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     ${NET_FF_SDL_LIBRARIES}
-    Qt6::Core
+    Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Network
 )

@@ -127,13 +127,25 @@ add_executable(Main2
     
     main2.cpp
 )
+add_executable(Process 
+    ${UI_HEADERS}
+    ${MOC_SOURCES}
+    ${RESOURCES}
+ 
+    
+    ${PLAYER}
+    ${HOMEPAGE}
+    ${FILESYSTEM}
+    
+    myprocess.cpp
+)
 
 
 set_target_properties(MyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set_target_properties(serverMyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set_target_properties(clientMyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set_target_properties(Main2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-
+set_target_properties(Process PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 
 # 链接 FFmpeg 库
@@ -158,6 +170,11 @@ target_link_libraries(clientMyPlayer PRIVATE
     ${NET_FF_SDL_LIBRARIES}
 )
 target_link_libraries(Main2 PRIVATE
+    Qt${QT_VERSION_MAJOR}::Widgets
+    ${NET_FF_SDL_LIBRARIES}
+    Qt6::Core
+)
+target_link_libraries(Process PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     ${NET_FF_SDL_LIBRARIES}
     Qt6::Core

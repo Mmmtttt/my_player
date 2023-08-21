@@ -3,6 +3,7 @@
 Player::Player(QWidget *parent,std::string _name) : QMainWindow(parent),name(_name){
     timer.start(1000); // 1 second interval
     connect(&timer, &QTimer::timeout, this, &Player::updateProgress);
+    connect(this,&Player::actionSignal,this,&Player::actionSlots);
     centrallayout = new QVBoxLayout();
 
     video=std::make_unique<Video>(name);
@@ -162,8 +163,10 @@ void Player::closeEvent(QCloseEvent *event){
     SDL_Event sevent;
     sevent.type = SDL_QUIT;
     SDL_PushEvent(&sevent);
+    emit exitSignal();
     // Call the base class implementation
     QMainWindow::closeEvent(event);
+    exit(0);
 }
 
 void Player::resizeEvent(QResizeEvent *event){

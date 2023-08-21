@@ -49,6 +49,13 @@ public:
     void play();
     void inital(SDL_Window *sdlWindow);
 
+signals:
+    void actionSignal();
+    void exitSignal();
+
+public slots:
+    void actionSlots(){play();}
+
 private:
     void hide_sub_widgets(){
         is_hide=!is_hide;

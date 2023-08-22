@@ -24,12 +24,13 @@ extern "C"{
 #include <map>
 #include <utility>
 #include <vector>
+#include <atomic>
 
 #define SDL_AUDIO_BUFFER_SIZE 1024
 #define MAX_AUDIO_FRAME_SIZE 192000
 
 extern std::chrono::_V2::system_clock::time_point start;  //时间轴计时器的开始点
-extern int64_t time_shaft;
+extern std::atomic<int64_t> time_shaft;
 extern int64_t a_last_time;
 extern int64_t v_last_time;
 extern double speed;

@@ -61,8 +61,8 @@ void videoDecoder::get_Packet(){
         auto end = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-        time_shaft+=(elapsed.count()-std::max(a_last_time,v_last_time))*speed;//时间轴，是一次
-        v_last_time=elapsed.count();
+        //time_shaft.fetch_add((elapsed.count()-std::max(a_last_time,v_last_time))*speed);//时间轴，是一次
+        //v_last_time=elapsed.count();
 
 
         s_video_play_time=temp->mypkt.dts * timebase_in_ms;

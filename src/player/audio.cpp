@@ -256,7 +256,8 @@ void audioDecoder::sdl_audio_callback(void *userdata, uint8_t *stream, int len)
                 auto end = std::chrono::high_resolution_clock::now();
                 auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-                time_shaft+=(elapsed.count()-std::max(a_last_time,v_last_time))*speed;//时间轴，是一次
+                //time_shaft.fetch_add((elapsed.count()-std::max(a_last_time,v_last_time))*speed);//时间轴，是一次
+                time_shaft.fetch_add((elapsed.count()-a_last_time)*speed);
                 a_last_time=elapsed.count();
 
                 //std::cout<<"audio: "<<time_shaft<<" - "<<s_audio_play_time<<" = "<<time_shaft-s_audio_play_time<<std::endl;

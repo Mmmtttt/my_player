@@ -4,7 +4,7 @@
 #include "my_portocol.h"
 
 std::chrono::_V2::system_clock::time_point start;
-int64_t time_shaft = 0;
+std::atomic<int64_t> time_shaft = 0;
 int64_t a_last_time = 0;
 int64_t v_last_time = 0;
 double speed = 1.0;

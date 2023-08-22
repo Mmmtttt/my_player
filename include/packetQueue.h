@@ -9,6 +9,7 @@
 #include <deque>
 #include <iostream>
 #include <map>
+#include <atomic>
 class myAVPacket{
     public:
         myAVPacket(){}
@@ -44,7 +45,7 @@ class packetQueue{
 
         int packet_queue_push(std::shared_ptr<myAVPacket> pkt_ptr);
         int packet_queue_pop(std::shared_ptr<myAVPacket>& pkt_ptr, int block);
-        void seek(int64_t& timeshaft,double timebase);//timeshaft加引用是为了实时获取此刻timeshaft的值，对于音频和视频，timebase通常不同
+        void seek(std::atomic<int64_t>& timeshaft,double timebase);//timeshaft加引用是为了实时获取此刻timeshaft的值，对于音频和视频，timebase通常不同
     //private:
         std::deque<std::shared_ptr<myAVPacket>> pkts_ptr;
         int64_t size=0;         // 队列中AVPacket总的大小(字节数)

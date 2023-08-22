@@ -76,7 +76,7 @@ bool packetQueue::insert(int64_t pos, char* data){
     return true;
 }
 
-void packetQueue::seek(int64_t& timeshaft,double timebase){
+void packetQueue::seek(std::atomic<int64_t>& timeshaft,double timebase){
     static std::mutex seek_Mutex;
     
     std::unique_lock<std::mutex> seek_lock(seek_Mutex);

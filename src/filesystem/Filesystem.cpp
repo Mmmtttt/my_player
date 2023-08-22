@@ -193,9 +193,10 @@ void Filesystem::on_fileListWidget_customContextMenuRequested(const QPoint &pos)
                                                     currentDir.dirName(), &ok);
 
             QString fileName=file.getName();
-            QString destFilePath = newPath + "\"" + fileName;
-            QFile::copy(fileName, destFilePath);
-            qDebug()<<destFilePath;
+            QString srcFilePath = currentDir.path()+'/' + fileName;
+            QString destFilePath = currentDir.path()+'/'+newPath + '/' + fileName;
+            //qDebug()<<destFilePath;
+            QFile::copy(srcFilePath, destFilePath);
             refresh();
         });
         contextMenu.addAction(&openAction);

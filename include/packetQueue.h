@@ -55,7 +55,7 @@ class packetQueue{
 
         std::shared_ptr<myAVPacket> get_curr_pkt(){return pkts_ptr[curr_decode_pos];}
         int64_t get_curr_id(){return pkts_ptr[curr_decode_pos]->id_in_queue;}
-        int64_t get_curr_num(){return pkts_ptr[curr_decode_pos]->num;}
+        int64_t get_curr_num(){if(curr_decode_pos>=get_pkt_count())return INT64_MAX; return pkts_ptr[curr_decode_pos]->num;}
         int64_t get_curr_dts(){return pkts_ptr[curr_decode_pos]->mypkt.dts;}
         int get_idx(){return pkts_ptr[curr_decode_pos]->mypkt.stream_index;}
         bool is_curr_received(){return pkts_ptr[curr_decode_pos]->is_recived;}

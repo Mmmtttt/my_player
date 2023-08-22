@@ -6,8 +6,8 @@
       "type": "cppdbg",
       "request": "launch",
       "args": [
-        "1.mp4",
-        "REMOTE"
+        "../BAB-026.ts",
+        "LOCAL"
       ],
       "stopAtEntry": false,
       "externalConsole": true,

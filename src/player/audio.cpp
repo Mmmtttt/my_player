@@ -31,6 +31,8 @@ int audioDecoder::audio_decode_frame(std::shared_ptr<myAVPacket> p_packet_ptr, u
     if(s_playing_exit)exit(0);
 
     AVFrame *p_frame = av_frame_alloc();
+
+    int need_new_times = 0;  //如果两次都触发了neednew，说明这个数据包有问题
     
     int frm_size = 0;
     int res = 0;
@@ -64,6 +66,7 @@ int audioDecoder::audio_decode_frame(std::shared_ptr<myAVPacket> p_packet_ptr, u
             {
                 printf("audio avcodec_receive_frame(): codec not opened, or it is an encoder\n");
                 res = -1;
+                need_new_times++;
                 goto exit;
             }
             else
@@ -181,6 +184,7 @@ int audioDecoder::audio_decode_frame(std::shared_ptr<myAVPacket> p_packet_ptr, u
         if (need_new)
         {
             //myAVPacket temp=p_packet;
+            if(need_new_times>=2){res = -1;goto exit;}
             ret = avcodec_send_packet(p_codec_ctx, &(p_packet_ptr->mypkt));
             if (ret != 0)
             {
@@ -190,6 +194,9 @@ int audioDecoder::audio_decode_frame(std::shared_ptr<myAVPacket> p_packet_ptr, u
                 res = -1;
                 goto exit;
             }
+            need_new_times++;
+//            res = -1;
+//            goto exit;
         }
     }
 
@@ -273,7 +280,9 @@ void audioDecoder::sdl_audio_callback(void *userdata, uint8_t *stream, int len)
                 else if(Audio_Should_Seek(diff)){static_a_decoder->audio_packet_queue->seek(time_shaft,static_a_decoder->timebase_in_ms);}
             }
             // 解码并根据播放速率处理
-            s_audio_len = static_a_decoder->audio_decode_frame(p_packet_ptr, s_audio_buf, sizeof(s_audio_buf)) / s_audio_playback_rate;
+            int res =static_a_decoder->audio_decode_frame(p_packet_ptr, s_audio_buf, sizeof(s_audio_buf));
+            if(res==-1)return;
+            s_audio_len = res / s_audio_playback_rate;
             s_tx_idx = 0;
             
         }

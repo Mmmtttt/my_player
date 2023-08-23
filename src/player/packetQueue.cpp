@@ -115,7 +115,7 @@ void packetQueue::seek(std::atomic<int64_t>& timeshaft,double timebase){
 
     
 
-    if(get_idx()==0)
+    //if(get_idx()==0)
         timeshaft=get_curr_dts()*timebase;
     
     

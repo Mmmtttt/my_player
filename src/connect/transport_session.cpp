@@ -154,6 +154,8 @@ void Session::send_Data(){
             
             send_all(server_socket,(const char *)temp->mypkt.data,temp->size);
             
+            Send_side_datas(server_socket,&temp->mypkt);
+
             temp->is_sended=true;
             video_packet_queue->curr_decode_pos++;
             if(video_packet_queue->curr_decode_pos>=v_size)video_packet_queue->set_curr_pos(v_size-1);
@@ -168,6 +170,9 @@ void Session::send_Data(){
             SEND_ALL(*temp);
             
             send_all(server_socket,(const char *)temp->mypkt.data,temp->size);
+
+            Send_side_datas(server_socket,&temp->mypkt);
+
             temp->is_sended=true;
             audio_packet_queue->curr_decode_pos++;
             if(audio_packet_queue->curr_decode_pos>=a_size)audio_packet_queue->set_curr_pos(a_size-1);
@@ -202,6 +207,9 @@ void Session::seek_handle(){
         SEND_ALL(*temp);
         
         send_all(server_socket,(const char *)temp->mypkt.data,temp->size);
+
+        Send_side_datas(server_socket,&temp->mypkt);
+
         std::cout<<"call back   audio packet "<<temp->id_in_queue<<" sended"<<std::endl;
         audio_packet_queue->curr_decode_pos++;
         
@@ -217,6 +225,9 @@ void Session::seek_handle(){
         SEND_ALL(*temp);
         
         send_all(server_socket,(const char *)temp->mypkt.data,temp->size);
+
+        Send_side_datas(server_socket,&temp->mypkt);
+
         std::cout<<"call back   video packet "<<temp->id_in_queue<<" sended"<<std::endl;
         video_packet_queue->curr_decode_pos++;
         
@@ -298,10 +309,15 @@ void Session::receive_Data(){
         RECV_ALL(size);
         av_new_packet(&temp->mypkt, size);
         char *buf=(char *)temp->mypkt.buf,*data=(char *)temp->mypkt.data;
+        AVPacketSideData * sidedata=temp->mypkt.side_data;
+
         RECV_ALL(*temp);
         recv_all(client_socket,(char *)data,size);
         temp->mypkt.data=(uint8_t *)data;
         temp->mypkt.buf=(AVBufferRef *)buf;
+        temp->mypkt.side_data=sidedata;
+
+        Recv_side_datas(client_socket,&temp->mypkt);
 
         bool ret;
         if(temp->mypkt.stream_index==AVMEDIA_TYPE_VIDEO){

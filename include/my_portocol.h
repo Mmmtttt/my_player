@@ -20,6 +20,8 @@ int Receive_FileName(SOCKET serverSocket,std::string& name);
 
 int Send_FileName(SOCKET clientSocket,std::string& name);
 
+void Send_side_datas(SOCKET clientSocket,AVPacket *pkt);
 
+void Recv_side_datas(SOCKET socket,AVPacket *pkt);
 
 #endif

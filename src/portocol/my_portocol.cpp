@@ -23,49 +23,7 @@ int Recv_Message(SOCKET socket, std::string& message){
     return ret;
 }
 
-int Send_Filenames(SOCKET clientSocket){
-    // WIN32_FIND_DATA findData;
-    // HANDLE hFind = FindFirstFile("*", &findData);
 
-    // if (hFind != INVALID_HANDLE_VALUE) {
-    //     json fileList;
-    //     do {
-    //         if (findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-    //             continue;
-    //         }
-    //         fileList.push_back(findData.cFileName);
-    //     } while (FindNextFile(hFind, &findData) != 0);
-
-    //     FindClose(hFind);
-
-    //     // Serialize JSON and send
-    //     std::string jsonStr = fileList.dump();
-    //     // int length=jsonStr.length();
-    //     // send(clientSocket, (const char *)&length,sizeof(length),0);
-    //     // send(clientSocket, jsonStr.c_str(), length, 0);
-    //     return Send_Message(clientSocket,jsonStr);
-    // }
-    
-}
-
-int Receive_FileNames(SOCKET clientSocket) {
-    
-    // int length;
-    // recv(clientSocket, (char *)&length, sizeof(length), 0);
-    // char * buff=new char[length];
-    // recv(clientSocket, (char *)&buff, length, 0);
-    std::string message;
-    int ret=Recv_Message(clientSocket,message);
-    if(ret<=0)return ret;
-
-
-    json fileList = json::parse(message);
-    for (const auto& fileName : fileList) {
-        std::cout << "|| " << fileName << std::endl;
-    }
-
-    return ret;
-}
 
 int Receive_FileName(SOCKET serverSocket,std::string& name){
     
@@ -83,12 +41,67 @@ int Receive_FileName(SOCKET serverSocket,std::string& name){
 int Send_FileName(SOCKET clientSocket,std::string& name){
     std::string fileName;
     std::cin>>fileName;
-    //fileName+"\r";
-    // int length=fileName.length();
-    // send(clientSocket, (char *)&length, sizeof(length), 0);
-    // send(clientSocket, fileName.c_str(), length, 0);
+
     int ret=Send_Message(clientSocket,fileName);
     name=fileName;
     return ret;
 }
+
+void Send_side_data(SOCKET socket,AVPacketSideData* sidedata){
+    send_all(socket,(const char*)&sidedata->type,sizeof(sidedata->type));
+    send_all(socket,(const char*)&sidedata->size,sizeof(sidedata->size));
+    send_all(socket,(const char*)sidedata->data,sidedata->size);
+}
+
+void Recv_side_data(SOCKET socket,AVPacket *pkt){
+    enum AVPacketSideDataType type;
+    int size;
+    recv_all(socket,(char*)&type,sizeof(type));
+    recv_all(socket,(char*)&size,sizeof(size));
+    //uint8_t *dst_data = av_packet_new_side_data(pkt, type, size);
+
+    int elems = pkt->side_data_elems;
+
+    if ((unsigned)elems + 1 > INT_MAX / sizeof(*pkt->side_data))
+        return ;
+    if ((unsigned)size > INT_MAX - AV_INPUT_BUFFER_PADDING_SIZE)
+        return ;
+
+    pkt->side_data = (AVPacketSideData *)av_realloc(pkt->side_data,
+                                (elems + 1) * sizeof(*pkt->side_data));
+    if (!pkt->side_data)
+        return ;
+
+    pkt->side_data[elems].data = (uint8_t *)av_mallocz(size + AV_INPUT_BUFFER_PADDING_SIZE);
+    if (!pkt->side_data[elems].data)
+        return ;
+    pkt->side_data[elems].size = size;
+    pkt->side_data[elems].type = type;
+    pkt->side_data_elems++;
+
+    uint8_t *dst_data= pkt->side_data[elems].data;
+
+
+    recv_all(socket,(char*)&dst_data,size);
+}
+
+void Send_side_datas(SOCKET socket,AVPacket *pkt){
+    send_all(socket,(const char*)&pkt->side_data_elems,sizeof(pkt->side_data_elems));
+    for (int i = 0; i < pkt->side_data_elems; i++) {
+        Send_side_data(socket,&pkt->side_data[i]);
+    }
+}
+
+void Recv_side_datas(SOCKET socket,AVPacket *pkt){
+    int elems ;
+    recv_all(socket,(char*)&elems,sizeof(elems));
+    for (int i = 0; i < elems; i++) {
+        Recv_side_data(socket,pkt);
+    }
+}
+
+
+
+
+
 

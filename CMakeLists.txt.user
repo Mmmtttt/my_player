@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 11.0.1, 2023-08-24T15:10:15. -->
+<!-- Written by QtCreator 11.0.1, 2023-08-24T19:53:40. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -228,6 +228,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">serverMyPlayer</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.serverMyPlayer</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">serverMyPlayer</value>
+    <value type="QString" key="RunConfiguration.Arguments">../5.ts REMOTE</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
@@ -244,7 +245,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Process</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.Process</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">Process</value>
-    <value type="QString" key="RunConfiguration.Arguments">../4.mp4 REMOTE</value>
+    <value type="QString" key="RunConfiguration.Arguments">../5.ts REMOTE</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseLibrarySearchPath">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>

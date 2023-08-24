@@ -17,6 +17,13 @@ class myAVPacket{
         ~myAVPacket(){
             //std::cout<<"destory num "<<num<<std::endl;
             if(is_recived==false)return;
+
+            for (int i = 0; i < mypkt.side_data_elems; i++)
+                if(mypkt.side_data[i].data[0])
+                    av_freep(&mypkt.side_data[i].data);
+            //av_freep(&mypkt.side_data);
+            mypkt.side_data_elems = 0;
+
             av_packet_unref(&mypkt);
         }
 

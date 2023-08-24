@@ -50,7 +50,7 @@ int Send_FileName(SOCKET clientSocket,std::string& name){
 void Send_side_data(SOCKET socket,AVPacketSideData* sidedata){
     send_all(socket,(const char*)&sidedata->type,sizeof(sidedata->type));
     send_all(socket,(const char*)&sidedata->size,sizeof(sidedata->size));
-    send_all(socket,(const char*)sidedata->data,sidedata->size);
+    //send_all(socket,(const char*)sidedata->data,sidedata->size);
 }
 
 void Recv_side_data(SOCKET socket,AVPacket *pkt){
@@ -62,19 +62,14 @@ void Recv_side_data(SOCKET socket,AVPacket *pkt){
 
     int elems = pkt->side_data_elems;
 
-    if ((unsigned)elems + 1 > INT_MAX / sizeof(*pkt->side_data))
-        return ;
-    if ((unsigned)size > INT_MAX - AV_INPUT_BUFFER_PADDING_SIZE)
-        return ;
 
-    pkt->side_data = (AVPacketSideData *)av_realloc(pkt->side_data,
+
+    pkt->side_data = (AVPacketSideData *)realloc(pkt->side_data,
                                 (elems + 1) * sizeof(*pkt->side_data));
-    if (!pkt->side_data)
-        return ;
 
-    pkt->side_data[elems].data = (uint8_t *)av_mallocz(size + AV_INPUT_BUFFER_PADDING_SIZE);
-    if (!pkt->side_data[elems].data)
-        return ;
+
+    pkt->side_data[elems].data = (uint8_t *)malloc(size + AV_INPUT_BUFFER_PADDING_SIZE);
+
     pkt->side_data[elems].size = size;
     pkt->side_data[elems].type = type;
     pkt->side_data_elems++;
@@ -82,7 +77,7 @@ void Recv_side_data(SOCKET socket,AVPacket *pkt){
     uint8_t *dst_data= pkt->side_data[elems].data;
 
 
-    recv_all(socket,(char*)&dst_data,size);
+    //recv_all(socket,(char*)&dst_data,size);
 }
 
 void Send_side_datas(SOCKET socket,AVPacket *pkt){
@@ -95,6 +90,7 @@ void Send_side_datas(SOCKET socket,AVPacket *pkt){
 void Recv_side_datas(SOCKET socket,AVPacket *pkt){
     int elems ;
     recv_all(socket,(char*)&elems,sizeof(elems));
+    pkt->side_data_elems=0;
     for (int i = 0; i < elems; i++) {
         Recv_side_data(socket,pkt);
     }

@@ -4,10 +4,12 @@
 #include <QInputDialog>
 
 #include "fileiconmapper.h"
+#include "win_net.h"
+#include "my_portocol.h"
 
 
 
-Filesystem::Filesystem(QWidget *parent,PLAYER_TYPE _TYPE)
+Filesystem::Filesystem(QWidget *parent,FILE_SYSTEM_TYPE _TYPE)
     : QMainWindow(parent),TYPE(_TYPE)
     , ui(new Ui::Filesystem)
 {
@@ -27,13 +29,54 @@ Filesystem::Filesystem(QWidget *parent,PLAYER_TYPE _TYPE)
 
     refreshbutton = ui->refreshButton;
 
-    refresh();
+
 
     ui->fileListWidget->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->fileListWidget, &QListWidget::customContextMenuRequested, this, &Filesystem::on_fileListWidget_customContextMenuRequested);
     connect(ui->refreshButton,&QToolButton::clicked,this,&Filesystem::on_rehreshButton_clicked);
-    connect(ui->back,&QToolButton::clicked,this,&Filesystem::on_back_clicked);
-    connect(ui->addfolder,&QToolButton::clicked,this,&Filesystem::on_addfolder_clicked);
+//    connect(ui->back,&QToolButton::clicked,this,&Filesystem::on_back_clicked);
+//    connect(ui->addfolder,&QToolButton::clicked,this,&Filesystem::on_addfolder_clicked);
+
+    if(TYPE==Local){refresh(); return;}
+
+    WSADATA wsaData;
+    int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (result != NO_ERROR) {
+        throw std::runtime_error("Initialization error\n");
+    }
+    else if(TYPE==Server){
+        connect_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        if (connect_socket == INVALID_SOCKET) {
+            std::cout << "Error at socket: " << WSAGetLastError() << "\n";
+            WSACleanup();
+            return;
+        }
+
+        QToolButton * openserver=new QToolButton();
+        openserver->setFixedSize(20,20);
+        connect(openserver,&QToolButton::clicked,this,&Filesystem::on_openserver_clicked);
+        layout()->addWidget(openserver);
+
+
+
+    }
+    else{
+        connect_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        if (connect_socket == INVALID_SOCKET) {
+            std::cout << "Error at socket: " << WSAGetLastError() << "\n";
+            WSACleanup();
+            return;
+        }
+
+        QToolButton * connect_to_server=new QToolButton();
+        connect_to_server->setFixedSize(20,20);
+        connect(connect_to_server,&QToolButton::clicked,this,&Filesystem::on_connect_to_server_clicked);
+        layout()->addWidget(connect_to_server);
+
+    }
+
+
+    //refresh();
 }
 
 Filesystem::~Filesystem()
@@ -43,6 +86,36 @@ Filesystem::~Filesystem()
 
 void Filesystem::refresh(){
     ui->fileListWidget->clear();
+
+    if(TYPE==Client){
+
+
+        std::string message("REFRESH");
+        Send_Message(connect_socket,message);
+        Recv_Message(connect_socket,message);
+        QString qMessage = QString::fromStdString(message);
+
+        ui->path->clear();
+        Recv_Message(connect_socket,message);
+        ui->path->setText(QString(message.c_str()));
+        currentDir.setPath(QString(message.c_str()));
+
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(qMessage.toUtf8());
+        QJsonArray jsonArray = jsonDoc.array();
+
+        // 遍历 JSON 数组
+        for (const QJsonValue &value : jsonArray) {
+            if (value.isObject()) {
+                QJsonObject jsonObject = value.toObject();
+                QString name = jsonObject["name"].toString();
+                FileType fileType = (FileType)jsonObject["fileType"].toInt();
+                File file(name, fileType);
+                addFileToList(file,fileType);
+            }
+        }
+
+        return;
+    }
 
     QFileInfoList fileList = currentDir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
 
@@ -73,6 +146,18 @@ void Filesystem::refresh(){
 
     QJsonDocument jsonDoc(jsonArray);
     qDebug() << jsonDoc.toJson();
+
+    if(TYPE==Server){
+
+
+
+        std::string message=jsonDoc.toJson().toStdString();
+        Send_Message(accept_socket,message);
+        message=currentDir.absolutePath().toStdString();
+        Send_Message(accept_socket,message);
+
+
+    }
 }
 
 void Filesystem::addFileToList(const File &file, FileType filetype) {
@@ -131,19 +216,52 @@ void Filesystem::sortItemsFromNonFolder() {
 
 void Filesystem::on_fileListWidget_itemDoubleClicked(QListWidgetItem *item) {
     File file = item->data(Qt::UserRole).value<File>();
-    openFile(file);
+    if(TYPE==Local)openFile(file);
+    else if(TYPE==Client){
+        std::string message("OPEN");
+        Send_Message(connect_socket,message);
+        message=file.getName().toStdString();
+        Send_Message(connect_socket,message);
+        switch(file.getFileType()){
+            case Video:message="VIDEO";break;
+            case Folder:message="FOLDER";break;
+        }
+
+
+        Send_Message(connect_socket,message);
+        openFile(file);
+    }
+
 }
 
 void Filesystem::openFile(const File &file) {
     // 根据文件类型执行打开操作，例如展示详细信息窗口
+    //if(TYPE==Client){std::string message("OPEN");Send_Message(connect_socket,message);}
+
     QString fileTypeName;
     switch (file.getFileType()) {
-        case Folder: fileTypeName = "文件夹"; currentDir.cd(file.getName()) ;refresh();break;
+        case Folder: fileTypeName = "文件夹"; {currentDir.cd(file.getName()) ;if(TYPE!=Server)refresh();}break;
         case Video: fileTypeName = "视频";{//Player player(this,(currentDir.path()+'/'+file.getName()).toStdString());
                                             //player.show();player.play();
                                             QStringList arguments;
                                             arguments <<currentDir.path()+'/'+file.getName();
-                                            if(TYPE==REMOTE) arguments <<"REMOTE";
+                                            if(TYPE==Server){
+
+
+                                                SOCKET accept_socket = accept(connect_socket, NULL, NULL);
+                                                if (accept_socket == INVALID_SOCKET) {
+                                                    std::cout << "accept() failed: " << WSAGetLastError() << '\n';
+                                                    closesocket(connect_socket);
+                                                    WSACleanup();
+                                                    return;
+                                                }
+                                                qDebug()<<file.getName();
+                                                qDebug()<<currentDir.path();
+                                                Session session(arguments[0].toStdString(),accept_socket,SERVER);
+
+                                                break;
+                                            }
+                                            else if(TYPE==Client)  arguments <<"REMOTE";
                                             else arguments <<"LOCAL";
                                             QProcess *process=new QProcess(this);
                                             process->start("Process.exe", arguments);
@@ -216,7 +334,9 @@ void Filesystem::on_rehreshButton_clicked()
 
 void Filesystem::on_back_clicked()
 {
-    currentDir.cdUp();
+
+    if(TYPE==Client){std::string message("BACK");Send_Message(connect_socket,message);}
+    else currentDir.cdUp();
     refresh();
 }
 
@@ -230,5 +350,81 @@ void Filesystem::on_addfolder_clicked()
                                             currentDir.dirName(), &ok);
     currentDir.rename("newfolder",newName);
     refresh();
+}
+
+void Filesystem::on_openserver_clicked(){
+        SOCKADDR_IN serverService;
+        serverService.sin_family = AF_INET;
+        serverService.sin_addr.s_addr = INADDR_ANY;
+        serverService.sin_port = htons(12345);
+
+        if (bind(connect_socket, (SOCKADDR*)&serverService, sizeof(serverService)) == SOCKET_ERROR) {
+               std::cout << "bind() failed.\n";
+               closesocket(connect_socket);
+               WSACleanup();
+               return;
+        }
+
+        if (listen(connect_socket, 1) == SOCKET_ERROR) {
+               std::cout << "Error listening on socket.\n";
+               closesocket(connect_socket);
+               WSACleanup();
+               return;
+        }
+
+        accept_socket = accept(connect_socket, NULL, NULL);
+        if (accept_socket == INVALID_SOCKET) {
+               std::cout << "accept() failed: " << WSAGetLastError() << '\n';
+               closesocket(connect_socket);
+               WSACleanup();
+               return;
+        }
+        std::cout << "Client connected.\n";
+
+
+
+        std::string message;
+
+
+        while(1){
+               if(Recv_Message(accept_socket,message)<0)return;
+               if(message=="OPEN"){
+                      Recv_Message(accept_socket,message);
+                      QString fileName=message.c_str();
+                      Recv_Message(accept_socket,message);
+                      FileType fileType;
+                      if(message=="VIDEO")fileType=Video;
+                      else if(message=="FOLDER")fileType=Folder;
+                      else fileType=Other;
+
+                      File file(fileName, fileType);
+                      openFile(file);
+               }
+               else if(message=="REFRESH"){
+                      refresh();
+               }
+               else if(message=="BACK"){
+                      currentDir.cdUp();
+               }
+
+        }
+
+
+        return;
+
+}
+
+void Filesystem::on_connect_to_server_clicked(){
+        SOCKADDR_IN clientService;
+        clientService.sin_family = AF_INET;
+        clientService.sin_addr.s_addr = inet_addr("127.0.0.1");
+        clientService.sin_port = htons(12345);
+
+        if (::connect(connect_socket, (SOCKADDR*)&clientService, sizeof(clientService)) == SOCKET_ERROR) {
+               std::cout << "Failed to connect.\n";
+               closesocket(connect_socket);
+               WSACleanup();
+               return;
+        }
 }
 

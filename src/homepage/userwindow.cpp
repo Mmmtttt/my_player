@@ -7,9 +7,12 @@ UserWindow::UserWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    openSecondWindowButton = new QPushButton("Open Second Window", this);
-    openSecondWindowButton->move(50, 50);  // 设置按钮位置
-    connect(openSecondWindowButton, &QPushButton::clicked, this, &UserWindow::openSecondWindow);
+//    openSecondWindowButton = new QPushButton("Open Second Window", this);
+//    openSecondWindowButton->move(50, 50);  // 设置按钮位置
+//    connect(openSecondWindowButton, &QPushButton::clicked, this, &UserWindow::openSecondWindow);
+
+    filesystem=new Filesystem(parent,Server);
+    layout()->addWidget(filesystem);
 }
 
 UserWindow::~UserWindow()
@@ -17,12 +20,4 @@ UserWindow::~UserWindow()
     delete ui;
 }
 
-void UserWindow::openSecondWindow()
-{
-    //Form *secondWindow = new Form;
-    //secondWindow->show();
-    Player mainWin;
 
-    mainWin.show();
-    mainWin.video->play();
-}

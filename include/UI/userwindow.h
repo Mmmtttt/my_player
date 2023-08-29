@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include <QPushButton>
-#include "player.h"
+#include "filesystem.h"
 
 namespace Ui {
 class UserWindow;
@@ -18,12 +18,10 @@ public:
     ~UserWindow();
 
 
-private slots:
-    void openSecondWindow();
 
 private:
     Ui::UserWindow *ui;
-    QPushButton *openSecondWindowButton;
+    Filesystem *filesystem;
 };
 
 #endif // USERWINDOW_H

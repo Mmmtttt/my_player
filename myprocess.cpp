@@ -29,6 +29,35 @@ SOCKET set_connect(){
     return connect_socket;
 }
 
+SOCKET  set_server(){
+    SOCKADDR_IN serverService;
+    serverService.sin_family = AF_INET;
+    serverService.sin_addr.s_addr = INADDR_ANY;
+    serverService.sin_port = htons(12345);
+
+    if (bind(connect_socket, (SOCKADDR*)&serverService, sizeof(serverService)) == SOCKET_ERROR) {
+        std::cout << "bind() failed.\n";
+        closesocket(connect_socket);
+        WSACleanup();
+        return 0;
+    }
+
+    if (listen(connect_socket, 1) == SOCKET_ERROR) {
+        std::cout << "Error listening on socket.\n";
+        closesocket(connect_socket);
+        WSACleanup();
+        return 0;
+    }
+
+    SOCKET accept_socket = accept(connect_socket, NULL, NULL);
+    if (accept_socket == INVALID_SOCKET) {
+        std::cout << "accept() failed: " << WSAGetLastError() << '\n';
+        closesocket(connect_socket);
+        WSACleanup();
+        return accept_socket;
+    }
+}
+
 int main(int argc, char *argv[])
 {
     QApplication  a(argc, argv);
@@ -44,7 +73,16 @@ int main(int argc, char *argv[])
     }
 
     std::string name = arguments.at(1).toStdString(); // 第一个参数是程序名，第二个参数是传递的字符串
+
     PLAYER_TYPE type = arguments.at(2)=="LOCAL"?LOCAL:REMOTE;
+
+    if(arguments.at(2)=="SERVER"){
+        //type=SERVER_;
+        // connect_socket=set_server();
+        // Player player(NULL,name,SERVER_,connect_socket);
+        // emit player.actionSignal();
+    }
+
 
     if(type==REMOTE){
         connect_socket=set_connect();

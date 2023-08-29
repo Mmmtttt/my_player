@@ -94,6 +94,32 @@ font: 16pt &quot;Microsoft YaHei UI&quot;;</string>
      <string>addfolder</string>
     </property>
    </widget>
+   <widget class="QToolButton" name="connect">
+    <property name="geometry">
+     <rect>
+      <x>690</x>
+      <y>200</y>
+      <width>141</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>connect</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="IP">
+    <property name="geometry">
+     <rect>
+      <x>690</x>
+      <y>289</y>
+      <width>141</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>input   IP</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

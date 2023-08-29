@@ -37,7 +37,7 @@ Filesystem::Filesystem(QWidget *parent,FILE_SYSTEM_TYPE _TYPE)
 //    connect(ui->back,&QToolButton::clicked,this,&Filesystem::on_back_clicked);
 //    connect(ui->addfolder,&QToolButton::clicked,this,&Filesystem::on_addfolder_clicked);
 
-    if(TYPE==Local){refresh(); return;}
+    if(TYPE==Local){refresh();ui->connect->setVisible(false);ui->IP->setVisible(false); return;}
 
     WSADATA wsaData;
     int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -52,31 +52,20 @@ Filesystem::Filesystem(QWidget *parent,FILE_SYSTEM_TYPE _TYPE)
             return;
         }
 
-        QToolButton * openserver=new QToolButton();
-        openserver->setFixedSize(20,20);
-        connect(openserver,&QToolButton::clicked,this,&Filesystem::on_openserver_clicked);
-        layout()->addWidget(openserver);
 
+        connect(ui->connect,&QToolButton::clicked,this,&Filesystem::on_openserver_clicked);
+        ui->refreshButton->setVisible(false);
+        ui->addfolder->setVisible(false);
+        ui->IP->setVisible(false);
 
 
     }
     else{
-        connect_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-        if (connect_socket == INVALID_SOCKET) {
-            std::cout << "Error at socket: " << WSAGetLastError() << "\n";
-            WSACleanup();
-            return;
-        }
 
-        QToolButton * connect_to_server=new QToolButton();
-        connect_to_server->setFixedSize(20,20);
-        connect(connect_to_server,&QToolButton::clicked,this,&Filesystem::on_connect_to_server_clicked);
-        layout()->addWidget(connect_to_server);
+
+        connect(ui->connect,&QToolButton::clicked,this,&Filesystem::on_connect_to_server_clicked);
 
     }
-
-
-    //refresh();
 }
 
 Filesystem::~Filesystem()
@@ -415,9 +404,24 @@ void Filesystem::on_openserver_clicked(){
 }
 
 void Filesystem::on_connect_to_server_clicked(){
+        QString IP = ui->IP->text();
+
+        WSADATA wsaData;
+        int result = WSAStartup(MAKEWORD(2, 2), &wsaData);
+        if (result != NO_ERROR) {
+               throw std::runtime_error("Initialization error\n");
+        }
+
+        connect_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        if (connect_socket == INVALID_SOCKET) {
+               std::cout << "Error at socket: " << WSAGetLastError() << "\n";
+               WSACleanup();
+               return;
+        }
+
         SOCKADDR_IN clientService;
         clientService.sin_family = AF_INET;
-        clientService.sin_addr.s_addr = inet_addr("127.0.0.1");
+        clientService.sin_addr.s_addr = inet_addr(IP.toStdString().c_str());
         clientService.sin_port = htons(12345);
 
         if (::connect(connect_socket, (SOCKADDR*)&clientService, sizeof(clientService)) == SOCKET_ERROR) {
@@ -426,5 +430,7 @@ void Filesystem::on_connect_to_server_clicked(){
                WSACleanup();
                return;
         }
+
+        refresh();
 }
 

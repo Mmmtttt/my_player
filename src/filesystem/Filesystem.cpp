@@ -237,16 +237,18 @@ void Filesystem::openFile(const File &file) {
                                             if(TYPE==Server){
 
 
-                                                SOCKET accept_socket = accept(connect_socket, NULL, NULL);
-                                                if (accept_socket == INVALID_SOCKET) {
-                                                    std::cout << "accept() failed: " << WSAGetLastError() << '\n';
-                                                    closesocket(connect_socket);
-                                                    WSACleanup();
-                                                    return;
-                                                }
-                                                qDebug()<<file.getName();
-                                                qDebug()<<currentDir.path();
-                                                Session session(arguments[0].toStdString(),accept_socket,SERVER);
+//                                                SOCKET accept_socket = accept(connect_socket, NULL, NULL);
+//                                                if (accept_socket == INVALID_SOCKET) {
+//                                                    std::cout << "accept() failed: " << WSAGetLastError() << '\n';
+//                                                    closesocket(connect_socket);
+//                                                    WSACleanup();
+//                                                    return;
+//                                                }
+//                                                qDebug()<<file.getName();
+//                                                qDebug()<<currentDir.path();
+//                                                Session session(arguments[0].toStdString(),accept_socket,SERVER);
+                                                    QProcess *process=new QProcess(this);
+                                                    process->start("Process2.exe", arguments);
 
                                                 break;
                                             }

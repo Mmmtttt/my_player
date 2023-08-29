@@ -139,6 +139,12 @@ add_executable(Process
     
     myprocess.cpp
 )
+add_executable(Process2 
+
+    ${PLAYER}
+    
+    myprocess2.cpp
+)
 
 
 set_target_properties(MyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
@@ -146,6 +152,7 @@ set_target_properties(serverMyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE
 set_target_properties(clientMyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set_target_properties(Main2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set_target_properties(Process PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set_target_properties(Process2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 
 # 链接 FFmpeg 库
@@ -180,4 +187,7 @@ target_link_libraries(Process PRIVATE
     ${NET_FF_SDL_LIBRARIES}
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Network
+)
+target_link_libraries(Process2 PRIVATE
+    ${NET_FF_SDL_LIBRARIES}
 )

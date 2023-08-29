@@ -18,7 +18,7 @@ SOCKET set_connect(){
     SOCKADDR_IN clientService;
     clientService.sin_family = AF_INET;
     clientService.sin_addr.s_addr = inet_addr("127.0.0.1");
-    clientService.sin_port = htons(12345);
+    clientService.sin_port = htons(12346);
 
     if (connect(connect_socket, (SOCKADDR*)&clientService, sizeof(clientService)) == SOCKET_ERROR) {
         std::cout << "Failed to connect.\n";
@@ -29,34 +29,7 @@ SOCKET set_connect(){
     return connect_socket;
 }
 
-SOCKET  set_server(){
-    SOCKADDR_IN serverService;
-    serverService.sin_family = AF_INET;
-    serverService.sin_addr.s_addr = INADDR_ANY;
-    serverService.sin_port = htons(12345);
 
-    if (bind(connect_socket, (SOCKADDR*)&serverService, sizeof(serverService)) == SOCKET_ERROR) {
-        std::cout << "bind() failed.\n";
-        closesocket(connect_socket);
-        WSACleanup();
-        return 0;
-    }
-
-    if (listen(connect_socket, 1) == SOCKET_ERROR) {
-        std::cout << "Error listening on socket.\n";
-        closesocket(connect_socket);
-        WSACleanup();
-        return 0;
-    }
-
-    SOCKET accept_socket = accept(connect_socket, NULL, NULL);
-    if (accept_socket == INVALID_SOCKET) {
-        std::cout << "accept() failed: " << WSAGetLastError() << '\n';
-        closesocket(connect_socket);
-        WSACleanup();
-        return accept_socket;
-    }
-}
 
 int main(int argc, char *argv[])
 {
@@ -86,8 +59,8 @@ int main(int argc, char *argv[])
 
     if(type==REMOTE){
         connect_socket=set_connect();
-        int ret =Send_Message(connect_socket,name);
-        if(ret<=0){std::cout<<"connect failed"<<std::endl;return 0;}
+//        int ret =Send_Message(connect_socket,name);
+//        if(ret<=0){std::cout<<"connect failed"<<std::endl;return 0;}
         Player player(NULL,name,REMOTE,connect_socket);
         player.show();
 

@@ -257,7 +257,7 @@ void Filesystem::openFile(const File &file) {
                                             arguments <<currentDir.path()+'/'+file.getName();
                                             if(TYPE==Server){
                                                     QProcess *process=new QProcess(this);
-                                                    process->start("Process2.exe", arguments);
+                                                    process->start("serverProcess.exe", arguments);
                                                 break;
                                             }
                                             else if(TYPE==Client){
@@ -266,7 +266,7 @@ void Filesystem::openFile(const File &file) {
                                             }
                                             else arguments <<"LOCAL";
                                             QProcess *process=new QProcess(this);
-                                            process->start("Process.exe", arguments);
+                                            process->start("clientProcess.exe", arguments);
                                             connect(process, &QProcess::finished, process, &QProcess::deleteLater);
                                            }  break;
         case Image: fileTypeName = "图片"; break;

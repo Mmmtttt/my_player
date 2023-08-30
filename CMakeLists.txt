@@ -112,10 +112,10 @@ qt6_add_resources(RESOURCES include/UI/resources.qrc)
 
 
 # 添加可执行文件生成
-add_executable(MyPlayer ${PLAYER} main.cpp )
-add_executable(serverMyPlayer ${PLAYER} src/connect/server.cpp )
-add_executable(clientMyPlayer ${PLAYER} src/connect/client.cpp )
-add_executable(Main2 
+#add_executable(MyPlayer ${PLAYER} main.cpp )
+#add_executable(serverMyPlayer ${PLAYER} src/connect/server.cpp )
+#add_executable(clientMyPlayer ${PLAYER} src/connect/client.cpp )
+add_executable(Main 
     ${UI_HEADERS}
     ${MOC_SOURCES}
     ${RESOURCES}
@@ -125,9 +125,9 @@ add_executable(Main2
     ${HOMEPAGE}
     ${FILESYSTEM}
     
-    main2.cpp
+    src/main.cpp
 )
-add_executable(Process 
+add_executable(clientProcess 
     ${UI_HEADERS}
     ${MOC_SOURCES}
     ${RESOURCES}
@@ -137,22 +137,22 @@ add_executable(Process
     ${HOMEPAGE}
     ${FILESYSTEM}
     
-    myprocess.cpp
+    src/clientprocess.cpp
 )
-add_executable(Process2 
+add_executable(serverProcess 
 
     ${PLAYER}
     
-    myprocess2.cpp
+    src/serverprocess.cpp
 )
 
 
-set_target_properties(MyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-set_target_properties(serverMyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-set_target_properties(clientMyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-set_target_properties(Main2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-set_target_properties(Process PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-set_target_properties(Process2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+#set_target_properties(MyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+#set_target_properties(serverMyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+#set_target_properties(clientMyPlayer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set_target_properties(Main PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set_target_properties(clientProcess PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set_target_properties(serverProcess PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 
 # 链接 FFmpeg 库
@@ -167,27 +167,27 @@ set(NET_FF_SDL_LIBRARIES
     ws2_32
 )
 
-target_link_libraries(MyPlayer PRIVATE
-    ${NET_FF_SDL_LIBRARIES}
-)
-target_link_libraries(serverMyPlayer PRIVATE
-    ${NET_FF_SDL_LIBRARIES}
-)
-target_link_libraries(clientMyPlayer PRIVATE
-    ${NET_FF_SDL_LIBRARIES}
-)
-target_link_libraries(Main2 PRIVATE
+#target_link_libraries(MyPlayer PRIVATE
+#    ${NET_FF_SDL_LIBRARIES}
+#)
+#target_link_libraries(serverMyPlayer PRIVATE
+#    ${NET_FF_SDL_LIBRARIES}
+#)
+#target_link_libraries(clientMyPlayer PRIVATE
+#    ${NET_FF_SDL_LIBRARIES}
+#)
+target_link_libraries(Main PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     ${NET_FF_SDL_LIBRARIES}
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Network
 )
-target_link_libraries(Process PRIVATE
+target_link_libraries(clientProcess PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     ${NET_FF_SDL_LIBRARIES}
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Network
 )
-target_link_libraries(Process2 PRIVATE
+target_link_libraries(serverProcess PRIVATE
     ${NET_FF_SDL_LIBRARIES}
 )

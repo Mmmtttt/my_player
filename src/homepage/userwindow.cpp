@@ -7,11 +7,8 @@ UserWindow::UserWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-//    openSecondWindowButton = new QPushButton("Open Second Window", this);
-//    openSecondWindowButton->move(50, 50);  // 设置按钮位置
-//    connect(openSecondWindowButton, &QPushButton::clicked, this, &UserWindow::openSecondWindow);
 
-    filesystem=new Filesystem(parent,Server);
+    filesystem=new Filesystem(parent,Local);
     layout()->addWidget(filesystem);
 }
 

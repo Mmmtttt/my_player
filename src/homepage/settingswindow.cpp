@@ -6,7 +6,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    filesystem=new Filesystem(parent,Client);
+    filesystem=new Filesystem(parent,Server);
     layout()->addWidget(filesystem);
 }
 

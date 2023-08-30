@@ -1,14 +1,12 @@
 ﻿#include "player.h"
-#include "my_portocol.h"
 #include <QCoreApplication>
 
-SOCKET connect_socket;
 
-SOCKET set_connect(){
+SOCKET set_connect(std::string IP){
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-    connect_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    SOCKET connect_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (connect_socket == INVALID_SOCKET) {
         std::cout << "Error at socket: " << WSAGetLastError() << "\n";
         WSACleanup();
@@ -17,7 +15,7 @@ SOCKET set_connect(){
 
     SOCKADDR_IN clientService;
     clientService.sin_family = AF_INET;
-    clientService.sin_addr.s_addr = inet_addr("127.0.0.1");
+    clientService.sin_addr.s_addr = inet_addr(IP.c_str());
     clientService.sin_port = htons(12346);
 
     if (connect(connect_socket, (SOCKADDR*)&clientService, sizeof(clientService)) == SOCKET_ERROR) {
@@ -49,18 +47,9 @@ int main(int argc, char *argv[])
 
     PLAYER_TYPE type = arguments.at(2)=="LOCAL"?LOCAL:REMOTE;
 
-    if(arguments.at(2)=="SERVER"){
-        //type=SERVER_;
-        // connect_socket=set_server();
-        // Player player(NULL,name,SERVER_,connect_socket);
-        // emit player.actionSignal();
-    }
-
 
     if(type==REMOTE){
-        connect_socket=set_connect();
-//        int ret =Send_Message(connect_socket,name);
-//        if(ret<=0){std::cout<<"connect failed"<<std::endl;return 0;}
+        SOCKET connect_socket=set_connect(arguments.at(3).toStdString());
         Player player(NULL,name,REMOTE,connect_socket);
         player.show();
 

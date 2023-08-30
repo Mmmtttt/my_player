@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Viewer</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Image Viewer</h1>
+    <h2>{{ filename }}</h2>
+    <img src="{{ url_for('download_file', filename=filename) }}" alt="{{ filename }}">
+    <a href="{{ url_for('download_file', filename=filename) }}">Download</a>
+    <a href="{{ url_for('index') }}">Back</a>
+    <br>
+    {% if prev_image %}
+        <a href="{{ url_for('view_file', filename=prev_image) }}">Previous</a>
+    {% endif %}
+    {% if next_image %}
+        <a href="{{ url_for('view_file', filename=next_image) }}">Next</a>
+    {% endif %}
+</body>
+</html>

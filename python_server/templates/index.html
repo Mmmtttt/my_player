@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Manager</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>File Manager</h1>
+    
+    <h2>Folders</h2>
+    <ul>
+        {% for folder in folders %}
+            <li>
+                <a href="{{ url_for('view_folder', folder=folder) }}">{{ folder }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+    <h2>File List</h2>
+    <ul>
+        {% for file in files %}
+            <li>
+                {{ file }}
+                <a href="{{ url_for('view_file', filename=file) }}">View</a>
+                <a href="{{ url_for('download_file', filename=file) }}">Download</a>
+                <a href="{{ url_for('delete_file', filename=file) }}">Delete</a>
+                
+            </li>
+        {% endfor %}
+    </ul>
+    <h2>Upload File</h2>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit" value="Upload">
+    </form>
+</body>
+</html>

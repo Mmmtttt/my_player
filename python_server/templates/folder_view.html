@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Folder View</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Folder: {{ folder }}</h1>
+
+    <h2>Sub Folders</h2>
+    
+    <ul>
+        <li>
+            <a href="{{ url_for('view_folder', folder='..') }}">..</a>
+        </li>
+        {% for sub_folder in sub_folders %}
+            <li>
+                <a href="{{ url_for('view_folder', folder=folder + '/' + sub_folder) }}">{{ sub_folder }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Files</h2>
+    <ul>
+        {% for file in files %}
+            <li>
+                {{ file }}
+                <a href="{{ url_for('view_file', filename=folder + '/' + file) }}">View</a>
+                <a href="{{ url_for('download_file', filename=folder + '/' + file) }}">Download</a>
+                <a href="{{ url_for('delete_file', filename=folder + '/' + file) }}">Delete</a>
+                
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

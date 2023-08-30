@@ -7,7 +7,7 @@ PermissionWindow::PermissionWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    filesystem=new Filesystem(parent,Local);
+    filesystem=new Filesystem(parent,Client);
     layout()->addWidget(filesystem);
 }
 

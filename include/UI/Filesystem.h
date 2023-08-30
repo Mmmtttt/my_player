@@ -67,6 +67,8 @@ private:
     SOCKET connect_socket;
     SOCKET accept_socket;
 
+    QString IP;
+
     void addFileToList(const File &file, FileType filetype);
     void openFile(const File &file);
     void sortItemsFromNonFolder();

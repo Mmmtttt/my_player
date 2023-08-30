@@ -97,10 +97,10 @@ QPushButton:default {
 </string>
          </property>
          <property name="text">
-          <string>系统设置</string>
+          <string>开启服务器</string>
          </property>
          <property name="icon">
-          <iconset>
+          <iconset resource="../../include/UI/resources.qrc">
            <normaloff>:/icons/settings.png</normaloff>:/icons/settings.png</iconset>
          </property>
          <property name="iconSize">
@@ -153,10 +153,10 @@ QToolButton:pressed,QToolButton:checked{
 </string>
          </property>
          <property name="text">
-          <string>权限管理</string>
+          <string>客户端</string>
          </property>
          <property name="icon">
-          <iconset>
+          <iconset resource="../../include/UI/resources.qrc">
            <normaloff>:/icons/permission.png</normaloff>:/icons/permission.png</iconset>
          </property>
          <property name="iconSize">
@@ -221,10 +221,10 @@ QPushButton:default {
 </string>
          </property>
          <property name="text">
-          <string>用户管理</string>
+          <string>本地</string>
          </property>
          <property name="icon">
-          <iconset>
+          <iconset resource="../../include/UI/resources.qrc">
            <normaloff>:/icons/user.png</normaloff>:/icons/user.png</iconset>
          </property>
          <property name="iconSize">
@@ -268,6 +268,8 @@ QPushButton:default {
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../include/UI/resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

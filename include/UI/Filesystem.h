@@ -68,6 +68,9 @@ private:
     SOCKET accept_socket;
 
     QString IP;
+    QProcess *serverprocess;
+    bool server_is_open;
+    QString root_path;
 
     void addFileToList(const File &file, FileType filetype);
     void openFile(const File &file);

@@ -17,16 +17,12 @@ Filesystem::Filesystem(QWidget *parent,FILE_SYSTEM_TYPE _TYPE)
     currentDir.setPath(".");
     ui->path->setText(currentDir.absolutePath());
 
-    // 获取默认字体
-    QFont font = QApplication::font();
 
-    // 设置图标的大小
+
+    QFont font = QApplication::font();// 获取默认字体
     ui->fileListWidget->setIconSize(QSize(64, 64)); // 设置图标大小
-
-    // 设置项的默认字体大小
     font.setPointSize(10); // 设置字体大小
     ui->fileListWidget->setFont(font);
-
     refreshbutton = ui->refreshButton;
 
 
@@ -36,6 +32,21 @@ Filesystem::Filesystem(QWidget *parent,FILE_SYSTEM_TYPE _TYPE)
     connect(ui->refreshButton,&QToolButton::clicked,this,&Filesystem::on_rehreshButton_clicked);
 //    connect(ui->back,&QToolButton::clicked,this,&Filesystem::on_back_clicked);
 //    connect(ui->addfolder,&QToolButton::clicked,this,&Filesystem::on_addfolder_clicked);
+
+    QString configFilePath = "../config.txt";
+    QFile configFile(configFilePath);
+    if (!configFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qDebug() << "Failed to open file:" << configFilePath;
+        return;
+    }
+
+    QTextStream in(&configFile);
+    root_path = in.readLine();  // 读取一行内容到 root_path
+
+    configFile.close();
+
+    currentDir.setPath(root_path);
+
 
     if(TYPE==Local){refresh();ui->connect->setVisible(false);ui->IP->setVisible(false); return;}
 
@@ -355,6 +366,22 @@ void Filesystem::on_addfolder_clicked()
 }
 
 void Filesystem::on_openserver_clicked(){
+
+    if(!server_is_open){
+        serverprocess=new QProcess;
+
+
+        // 设置命令和参数
+        QString program = "python";
+        QStringList arguments;
+        arguments << "./../python_server/app.py";
+        arguments << root_path;
+
+        // 启动进程
+        serverprocess->start(program, arguments);
+        server_is_open=true;
+    }
+
 
 
         accept_socket = accept(connect_socket, NULL, NULL);

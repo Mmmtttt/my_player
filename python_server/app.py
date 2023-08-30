@@ -1,12 +1,19 @@
 from flask import Flask, render_template, request, send_from_directory, redirect, url_for
 import os
 import mimetypes
+import sys
 
 app = Flask(__name__)
 #UPLOAD_FOLDER = os.getcwd()
 
-UPLOAD_FOLDER = "J:/"
+UPLOAD_FOLDER = "C:/"
 CURR_FOLDER = UPLOAD_FOLDER
+
+cmd_args = sys.argv
+if len(cmd_args) >= 2:
+    UPLOAD_FOLDER = cmd_args[1]
+else:
+    UPLOAD_FOLDER = UPLOAD_FOLDER
 
 @app.route('/')
 def index():
@@ -100,3 +107,4 @@ def view_file(filename):
 
 if __name__ == '__main__':
     app.run(debug=True)
+app.run(host='0.0.0.0', port=8080)

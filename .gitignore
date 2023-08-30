@@ -2,4 +2,5 @@ build/*
 FFmpeg
 *.mp4
 *.ts
+libs_win/*
 src/portocol/my_portocol.cpp~RF191eab09.TMP

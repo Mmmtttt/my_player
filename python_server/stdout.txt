@@ -1,0 +1,22 @@
+Windows PowerShell 
+版权所有 (C) Microsoft Corporation。保留所有权利。
+
+PS J:\transform\Homework\C++\my_player\python_server> dir
+
+
+    目录: J:\transform\Homework\C++\my_player\python_server
+
+
+Mode                LastWriteTime         Length Name                                                                                                                      
+----                -------------         ------ ----                                                                                                                      
+d-----        2023/8/31     20:44                static                                                                                                                    
+d-----        2023/8/31     23:22                templates                                                                                                                 
+-a----         2023/9/1      3:55           5835 app.py                                                                                                                    
+-a----        2023/8/31     20:44             98 package-lock.json                                                                                                         
+-a----        2023/8/31     20:44              4 package.json                                                                                                              
+-a----        2023/8/31     20:44           2289 script.js                                                                                                                 
+-a----         2023/9/1      3:55              0 stderr.txt                                                                                                                
+-a----         2023/9/1      3:55            129 stdout.txt                                                                                                                
+
+
+PS J:\transform\Homework\C++\my_player\python_server> 

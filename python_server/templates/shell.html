@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Command Shell</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Command Shell</h1>
+    <form action="/execute_command" method="post">
+        <input type="text" name="command" placeholder="Enter a command">
+        <input type="submit" value="Send">
+    </form>
+    <h2>Command Output</h2>
+    <pre>
+        {{ output }}
+    </pre>
+    <a href="{{ url_for('index') }}">Back</a>
+</body>
+</html>

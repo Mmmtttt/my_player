@@ -43,7 +43,7 @@
       </font>
      </property>
      <property name="text">
-      <string>这是权限管理窗口</string>
+      <string/>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>

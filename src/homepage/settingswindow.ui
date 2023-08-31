@@ -43,7 +43,7 @@
       </font>
      </property>
      <property name="text">
-      <string>这是系统设置窗口</string>
+      <string/>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>

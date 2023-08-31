@@ -1,4 +1,4 @@
-libs_win/*
+
 build/*
 FFmpeg
 *.mp4

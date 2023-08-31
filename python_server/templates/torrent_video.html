@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebTorrent Video Player</title>
+    <script src="https://cdn.jsdelivr.net/npm/webtorrent/webtorrent.min.js"></script>
+</head>
+<body>
+    <h1>WebTorrent Video Player</h1>
+    <div id="player"></div>
+
+    <script>
+        var client = new WebTorrent();
+
+        var magnetLink = "{{ magnet_link }}"; // Pass the magnet link from Flask
+
+        client.add(magnetLink, function (torrent) {
+            var file = torrent.files.find(function (file) {
+                return file.name.endsWith('.mp4'); // Assuming the video file has .mp4 extension
+            });
+
+            if (file) {
+                file.appendTo('#player');
+            }
+        });
+    </script>
+</body>
+</html>

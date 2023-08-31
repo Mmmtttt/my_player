@@ -32,5 +32,16 @@
         <input type="file" name="file">
         <input type="submit" value="Upload">
     </form>
+    <h2>Download Torrent</h2>
+
+    <input type="text" name="magnet_link" placeholder="Enter Magnet Link">
+    <form action="/download_torrent" method="post">
+        <input type="hidden" name="magnet_link" value="{{ magnet_link }}">
+        <input type="submit" value="Download">
+    </form>
+    <form action="/play_torrent" method="post">
+        <input type="hidden" name="magnet_link" value="{{ magnet_link }}">
+        <input type="submit" value="play">
+    </form>
 </body>
 </html>

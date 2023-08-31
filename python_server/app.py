@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, send_from_directory, redirect
 import os
 import mimetypes
 import sys
+import subprocess
 
 app = Flask(__name__)
 #UPLOAD_FOLDER = os.getcwd()
@@ -104,6 +105,21 @@ def view_file(filename):
         return render_template('video_player.html', filename=filename)
     else:
         return "Unsupported file type"
+
+@app.route('/download_torrent', methods=['POST'])
+def download_torrent():
+    magnet_link = request.form['magnet_link']
+    # 使用 webtorrent-cli 下载磁力链接内容
+    try:
+        subprocess.run(['..\\libs_win\\npm\\webtorrent.cmd', magnet_link], check=True)
+        return "Download completed"
+    except subprocess.CalledProcessError:
+        return "Error during download"  
+
+@app.route('/play_torrent', methods=['POST'])
+def play_torrent():
+    magnet_link = request.form['magnet_link']
+    return render_template('torrent_video.html', magnet_link=magnet_link)
 
 #if __name__ == '__main__':
     #app.run(debug=True)

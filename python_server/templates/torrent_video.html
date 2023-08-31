@@ -11,7 +11,7 @@
     <script>
         var client = new WebTorrent();
 
-        var torrentId = "{{ magnet_link }}"; // Pass the torrent ID from Flask
+        var magnetLink = "{{ magnet_link }}"; // Pass the magnet link from Flask
 
         client.add(magnetLink, function (torrent) {
             var file = torrent.files.find(function (file) {

@@ -129,6 +129,7 @@ def shell():
 
 
 
+
 f1 = open("stdout.txt", "w+")
 f2 = open("stderr.txt", "w+")
 popen = subprocess.Popen("C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe", shell=False, stdin=subprocess.PIPE, stdout=f1, stderr=f2, text=True)
@@ -139,11 +140,17 @@ def execute_command():
     try:
         popen.stdin.write(command+"\n")
         popen.stdin.flush()
-        output = " "
+        output = ""
         
         print(command)
 
+        if command == "clear" or command == "cls":
+            open("stdout.txt", "w").close()
+            open("stderr.txt", "w").close()
+
         time.sleep(1)
+        f1.seek(0)
+        f2.seek(0)
         content1 = f1.read()
         print(content1)
         content2 = f2.read()

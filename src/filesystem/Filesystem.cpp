@@ -6,6 +6,7 @@
 #include "fileiconmapper.h"
 #include "win_net.h"
 #include "my_portocol.h"
+#include <QNetworkInterface>
 
 
 
@@ -24,6 +25,22 @@ Filesystem::Filesystem(QWidget *parent,FILE_SYSTEM_TYPE _TYPE)
     font.setPointSize(10); // 设置字体大小
     ui->fileListWidget->setFont(font);
     refreshbutton = ui->refreshButton;
+
+
+    QList<QNetworkInterface> interfaces = QNetworkInterface::allInterfaces();
+    QString ipText;  // 用于存储 IP 地址的文本
+
+    foreach (const QNetworkInterface &interface0, interfaces) {
+        QList<QNetworkAddressEntry> entries = interface0.addressEntries();
+        foreach (const QNetworkAddressEntry &entry, entries) {
+            if (entry.ip().protocol() == QAbstractSocket::IPv4Protocol) {
+                ipText += entry.ip().toString() + "<br>";  // 使用 <br> 换行
+            }
+        }
+    }
+
+    // 设置 QLabel 的文本，使用 HTML 格式
+    ui->LOCALIP->setText(ipText);
 
 
 

@@ -3,6 +3,7 @@ import os
 import mimetypes
 import sys
 import subprocess
+import time
 
 app = Flask(__name__)
 #UPLOAD_FOLDER = os.getcwd()
@@ -120,6 +121,47 @@ def download_torrent():
 def play_torrent():
     magnet_link = request.form['magnet_link']
     return render_template('torrent_video.html', magnet_link=magnet_link)
+
+
+@app.route('/shell')
+def shell():
+    return render_template('shell.html')
+
+
+
+
+f1 = open("stdout.txt", "w+")
+f2 = open("stderr.txt", "w+")
+popen = subprocess.Popen("C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe", shell=False, stdin=subprocess.PIPE, stdout=f1, stderr=f2, text=True)
+
+@app.route('/execute_command', methods=['POST'])
+def execute_command():
+    command = request.form['command']
+    try:
+        popen.stdin.write(command+"\n")
+        popen.stdin.flush()
+        output = ""
+        
+        print(command)
+
+        if command == "clear" or command == "cls":
+            open("stdout.txt", "w").close()
+            open("stderr.txt", "w").close()
+
+        time.sleep(1)
+        f1.seek(0)
+        f2.seek(0)
+        content1 = f1.read()
+        print(content1)
+        content2 = f2.read()
+        output = content1 + content2
+
+
+
+
+        return render_template('shell.html', output=output)
+    except Exception as e:
+        return "Error executing command: " + str(e)
 
 #if __name__ == '__main__':
     #app.run(debug=True)

@@ -120,6 +120,19 @@ font: 16pt &quot;Microsoft YaHei UI&quot;;</string>
      <string>input   IP</string>
     </property>
    </widget>
+   <widget class="QLabel" name="LOCALIP">
+    <property name="geometry">
+     <rect>
+      <x>690</x>
+      <y>351</y>
+      <width>131</width>
+      <height>151</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
